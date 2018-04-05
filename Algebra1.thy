@@ -666,46 +666,68 @@ lemma sub_inserted1:
   shows "a \<notin> X \<and> a \<in> Y"
   using assms by auto
 
-lemma sub_inserted2:"\<lbrakk>Y \<subseteq> insert a X; \<not> Y \<subseteq> X\<rbrakk> \<Longrightarrow> Y = (Y - {a}) \<union> {a}"
-by blast
+lemma sub_inserted2:
+  assumes "Y \<subseteq> insert a X" and "\<not> Y \<subseteq> X" 
+  shows "Y = (Y - {a}) \<union> {a}"
+  using assms  by auto
 
-lemma insert_sub:"\<lbrakk> A \<subseteq> B; a \<in> B\<rbrakk> \<Longrightarrow> (insert a A) \<subseteq> B"
-by blast
+lemma insert_sub:
+  assumes "A \<subseteq> B" and "a \<in> B" 
+  shows "(insert a A) \<subseteq> B"
+  using assms by simp
 
-lemma insert_diff:"A \<subseteq> (insert b B) \<Longrightarrow> A - {b} \<subseteq> B"
-by blast
+lemma insert_diff:
+  assumes "A \<subseteq> (insert b B)" 
+  shows "A - {b} \<subseteq> B"
+  using assms by auto
 
-lemma insert_inc1:"A \<subseteq> insert a A"
-by blast
+lemma insert_inc1:
+  shows "A \<subseteq> insert a A"
+  by auto
 
-lemma insert_inc2:"a \<in> insert a A"
-by simp
+lemma insert_inc2:
+  shows "a \<in> insert a A"
+  by simp
 
-lemma nonempty_some:"A \<noteq> {} \<Longrightarrow> (SOME x. x \<in> A) \<in> A" 
-apply (frule nonempty_ex[of "A"])
-apply (rule someI2_ex) apply simp+
-done
+lemma nonempty_some:
+  assumes "A \<noteq> {}" 
+  shows "(SOME x. x \<in> A) \<in> A"
+  by (simp add: assms some_in_eq)
 
-lemma mem_family_sub_Un:"A \<in> C \<Longrightarrow> A \<subseteq> \<Union> C"
-by blast
+lemma mem_family_sub_Un:
+  assumes "A \<in> C" 
+  shows "A \<subseteq> \<Union> C"
+  using assms by auto
 
-lemma sub_Union:"\<exists>X\<in>C. A \<subseteq> X \<Longrightarrow> A \<subseteq> \<Union> C" 
-by blast
+lemma sub_Union:
+  assumes "\<exists>X\<in>C. A \<subseteq> X" 
+  shows "A \<subseteq> \<Union> C" 
+  using assms by auto
 
-lemma family_subset_Un_sub:"\<forall>A\<in>C. A \<subseteq> B \<Longrightarrow> \<Union> C \<subseteq> B"
-by blast
+lemma family_subset_Un_sub:
+  assumes "\<forall>A\<in>C. A \<subseteq> B" 
+  shows "\<Union> C \<subseteq> B"
+  using assms by auto
 
-lemma in_set_with_P:"P x \<Longrightarrow> x \<in> {y. P y}"
-by blast
+lemma in_set_with_P:
+  assumes "P x" 
+  shows "x \<in> {y. P y}"
+  using assms by simp
 
-lemma sub_single:"\<lbrakk>A \<noteq> {}; A \<subseteq> {a}\<rbrakk> \<Longrightarrow> A = {a}"
-by blast
+lemma sub_single:
+  assumes "A \<noteq> {}" and "A \<subseteq> {a}" 
+  shows "A = {a}"
+  using assms by auto
 
-lemma not_sub_single:"\<lbrakk>A \<noteq> {}; A \<noteq> {a}\<rbrakk> \<Longrightarrow> \<not> A \<subseteq> {a}"
-by blast
+lemma not_sub_single:
+  assumes "A \<noteq> {}" and "A \<noteq> {a}" 
+  shows "\<not> A \<subseteq> {a}"
+  using assms by auto
 
-lemma not_sub:"\<not> A \<subseteq> B \<Longrightarrow> \<exists>a. a\<in>A \<and> a \<notin> B"
-by blast
+lemma not_sub:
+  assumes "\<not> A \<subseteq> B" 
+  shows "\<exists>a. a\<in>A \<and> a \<notin> B"
+  using assms by auto
 
 
 section "Functions"
@@ -730,215 +752,229 @@ abbreviation
   INVFUN :: "['a \<Rightarrow> 'b, 'b set, 'a set] \<Rightarrow> ('b \<Rightarrow> 'a)"  ("(3_\<inverse>\<^bsub>_,_\<^esub>)" [82,82,83]82) where
   "f\<inverse>\<^bsub>B,A\<^esub> == invfun A B f"
 
-lemma eq_fun:"\<lbrakk> f \<in> A \<rightarrow> B; f = g \<rbrakk> \<Longrightarrow> g \<in> A \<rightarrow> B"
-by simp
+lemma eq_fun:
+  assumes "f \<in> A \<rightarrow> B" and "f = g" 
+  shows "g \<in> A \<rightarrow> B"
+  using assms by simp
 
-lemma eq_fun_eq_val:" f = g \<Longrightarrow> f x = g x"
-by simp
+lemma eq_fun_eq_val:
+  assumes "f = g" 
+  shows "f x = g x"
+  using assms by simp
 
-lemma eq_elems_eq_val:"x = y \<Longrightarrow> f x = f y"
-by simp
+lemma eq_elems_eq_val:
+  assumes "x = y" 
+  shows "f x = f y"
+  using assms by auto
 
-lemma cmp_fun:"\<lbrakk>f \<in> A \<rightarrow> B; g \<in> B \<rightarrow> C \<rbrakk> \<Longrightarrow> cmp g f \<in> A \<rightarrow> C"
-by (auto simp add:cmp_def)
+lemma cmp_fun:
+  assumes "f \<in> A \<rightarrow> B" and "g \<in> B \<rightarrow> C" 
+  shows "cmp g f \<in> A \<rightarrow> C"
+  using assms cmp_def[of g f] by auto
 
-lemma cmp_fun_image:"\<lbrakk>f \<in> A \<rightarrow> B; g \<in> B \<rightarrow> C \<rbrakk> \<Longrightarrow> 
-                          (cmp g f) ` A =  g ` (f ` A)"
-apply (rule equalityI)
- apply (rule subsetI, simp add:image_def)
- apply (erule bexE, simp add:cmp_def, blast)
- apply (rule subsetI, simp add:image_def[of g])
- apply (erule bexE, simp)
- apply (simp add:image_def cmp_def)
- apply blast
-done
+lemma cmp_fun_image:
+  assumes "f \<in> A \<rightarrow> B" and "g \<in> B \<rightarrow> C" 
+  shows "(cmp g f) ` A =  g ` (f ` A)"
+  using assms cmp_def[of g f] image_def by auto
 
-lemma cmp_fun_sub_image:"\<lbrakk>f \<in> A \<rightarrow> B; g \<in> B \<rightarrow> C; A1 \<subseteq> A\<rbrakk> \<Longrightarrow> 
-                          (cmp g f) ` A1 =  g ` (f ` A1)"
-apply (rule equalityI)
- apply (rule subsetI, simp add:image_def)
- apply (erule bexE, simp add:cmp_def, blast)
- apply (rule subsetI, simp add:image_def[of g])
- apply (erule bexE, simp)
- apply (simp add:image_def cmp_def)
- apply blast
-done
+lemma cmp_fun_sub_image:
+  assumes "f \<in> A \<rightarrow> B" and "g \<in> B \<rightarrow> C" and "A1 \<subseteq> A" 
+  shows "(cmp g f) ` A1 =  g ` (f ` A1)"
+  using assms cmp_def[of g f] image_def by auto
 
+lemma restrict_fun_eq:
+  assumes "\<forall>x\<in>A. f x = g x" 
+  shows "(\<lambda>x\<in>A. f x) = (\<lambda>x\<in>A. g x)"
+  using assms by auto
 
-lemma restrict_fun_eq:"\<forall>x\<in>A. f x = g x \<Longrightarrow> (\<lambda>x\<in>A. f x) = (\<lambda>x\<in>A. g x)"
- apply (simp add:fun_eq_iff)
-done
+lemma funcset_mem: 
+  assumes "f \<in> A \<rightarrow> B" and "x \<in> A" 
+  shows "f x \<in> B"
+  using assms by auto
 
-lemma funcset_mem: "\<lbrakk>f \<in> A \<rightarrow> B; x \<in> A\<rbrakk> \<Longrightarrow> f x \<in> B"
-apply (simp add: Pi_def)
-done
+lemma img_subset:
+  assumes "f \<in> A \<rightarrow> B" 
+  shows "f ` A \<subseteq> B"
+  using assms image_def by auto
 
-lemma img_subset:"f \<in> A \<rightarrow> B \<Longrightarrow> f ` A \<subseteq> B"
-apply (rule subsetI)
-apply (simp add:image_def, erule bexE, simp)
-apply (simp add:funcset_mem)
-done
+lemma funcset_mem1:
+  assumes "\<forall>l\<in>A. f l \<in> B" and "x \<in> A" 
+  shows "f x \<in> B"
+  using assms by simp
 
-lemma funcset_mem1:"\<lbrakk>\<forall>l\<in>A. f l \<in> B; x \<in> A\<rbrakk> \<Longrightarrow> f x \<in> B"
-apply simp
-done
+lemma func_to_img:
+  assumes "f \<in> A \<rightarrow> B" 
+  shows "f \<in> A \<rightarrow> f ` A"
+  using assms image_def by simp
 
-lemma func_to_img:"f \<in> A \<rightarrow> B \<Longrightarrow> f \<in> A \<rightarrow> f ` A"
-by (simp add:Pi_def)
+lemma restrict_in_funcset: 
+  assumes "\<forall>x\<in> A. f x \<in> B" 
+  shows "(\<lambda>x\<in>A. f x)\<in> A \<rightarrow> B"
+  using assms by simp
 
-lemma restrict_in_funcset: "\<forall>x\<in> A. f x \<in> B \<Longrightarrow> 
-                                     (\<lambda>x\<in>A. f x)\<in> A \<rightarrow> B"
-apply (simp add:Pi_def restrict_def)
-done
+lemma funcset_eq:
+  assumes "f \<in> extensional A" and "g \<in> extensional A" and "\<forall>x\<in>A. f x = g x" 
+  shows "f = g"
+  using assms extensionalityI[of f A g] by simp
 
-lemma funcset_eq:"\<lbrakk> f \<in> extensional A; g \<in> extensional A; \<forall>x\<in>A. f x = g x \<rbrakk> \<Longrightarrow>  f = g"
-apply (simp add:extensionalityI)
-done
+lemma eq_funcs:
+  assumes "f \<in> A \<rightarrow> B" and "g \<in> A \<rightarrow> B" and "f = g" and "x \<in> A" 
+  shows "f x = g x"
+  using assms by simp
 
-lemma eq_funcs:"\<lbrakk>f \<in> A \<rightarrow> B; g \<in> A \<rightarrow> B; f = g; x \<in> A\<rbrakk> \<Longrightarrow> f x = g x"
-by simp
+lemma restriction_of_domain:
+  assumes "f \<in> A \<rightarrow> B" and "A1 \<subseteq> A" 
+  shows "restrict f A1 \<in> A1 \<rightarrow> B"
+  using assms restrict_def[of f A1] by auto
 
-lemma restriction_of_domain:"\<lbrakk> f \<in> A \<rightarrow> B; A1 \<subseteq> A \<rbrakk> \<Longrightarrow> 
-  restrict f A1 \<in> A1 \<rightarrow> B"
-by blast
-
-lemma restrict_restrict:"\<lbrakk> restrict f A \<in> A \<rightarrow> B; A1 \<subseteq> A \<rbrakk> \<Longrightarrow>
-      restrict (restrict f A) A1 = restrict f A1"
-apply (rule funcset_eq[of _ "A1"])
- apply (simp add:restrict_def extensional_def)
- apply (simp add:restrict_def extensional_def)
-apply (rule ballI) apply simp
- apply (simp add:subsetD)
-done
+lemma restrict_restrict:
+  assumes "restrict f A \<in> A \<rightarrow> B" and "A1 \<subseteq> A" 
+  shows "restrict (restrict f A) A1 = restrict f A1"
+  using assms(2) Int_absorb1[of A1 A] by simp
  
-lemma restr_restr_eq:"\<lbrakk> restrict f A \<in> A \<rightarrow> B; restrict f A = restrict g A;
-A1 \<subseteq> A \<rbrakk> \<Longrightarrow> restrict f A1 = restrict g A1"
- apply (subst restrict_restrict[THEN sym, of "f" "A" "B" "A1"], assumption+)
- apply (simp add:restrict_restrict[THEN sym, of "g" "A" "B" "A1"])
-done
+lemma restr_restr_eq:
+  assumes "restrict f A \<in> A \<rightarrow> B" and "restrict f A = restrict g A" and "A1 \<subseteq> A" 
+  shows "restrict f A1 = restrict g A1"
+proof-
+  have "restrict f A1 = restrict (restrict f A) A1"
+    using assms(1) assms(3) restrict_restrict[of f A B A1] by simp
+  then have f1:"restrict f A1 = restrict (restrict g A) A1"
+    using assms(2) by simp
+  moreover have "A \<inter> A1 = A1"
+    using assms(3) by (simp add: Int_absorb1)
+  thus "restrict f A1 = restrict g A1"
+    using restrict_restrict[of g A B A1] f1 by simp
+qed
 
-lemma funcTr:"\<lbrakk> f \<in> A \<rightarrow> B; g \<in> A \<rightarrow> B; f = g; a \<in> A\<rbrakk> \<Longrightarrow> f a = g a"
-apply simp
-done 
+lemma funcTr:
+  assumes "f \<in> A \<rightarrow> B" and "g \<in> A \<rightarrow> B" and "f = g" and "a \<in> A" 
+  shows "f a = g a"
+  using assms by simp
 
-lemma funcTr1:"\<lbrakk>f = g; a \<in> A\<rbrakk> \<Longrightarrow> f a = g a"
-apply simp
-done
+lemma funcTr1:
+  assumes "f = g" and "a \<in> A" 
+  shows "f a = g a"
+  using assms by simp
 
-lemma restrictfun_im:"\<lbrakk> (restrict f A) \<in> A \<rightarrow> B; A1 \<subseteq> A \<rbrakk> \<Longrightarrow>
-       (restrict f A) ` A1 = f ` A1"
-apply (subgoal_tac "\<forall>x\<in>A1. x \<in> A")
-apply (simp add:image_def)
-apply (rule ballI) apply (simp add:subsetD)
-done
+lemma restrictfun_im:
+  assumes "(restrict f A) \<in> A \<rightarrow> B" and "A1 \<subseteq> A" 
+  shows "(restrict f A) ` A1 = f ` A1"
+  using assms restrict_def[of f A] image_def by auto
 
-lemma mem_in_image:"\<lbrakk> f \<in> A \<rightarrow> B; a \<in> A\<rbrakk> \<Longrightarrow> f a \<in> f ` A "
-apply (simp add:image_def)
- apply blast
-done
+lemma mem_in_image:
+  assumes "f \<in> A \<rightarrow> B" and "a \<in> A" 
+  shows "f a \<in> f ` A "
+  using assms image_def[of f A] by auto
 
-lemma mem_in_image1:"\<lbrakk> \<forall>l\<in>A. f l \<in> B; a \<in> A\<rbrakk> \<Longrightarrow> f a \<in> f ` A "
-apply simp
-done
+lemma mem_in_image1:
+  assumes "\<forall>l\<in>A. f l \<in> B" and "a \<in> A" 
+  shows "f a \<in> f ` A "
+  using assms by simp
 
-lemma mem_in_image2:"a \<in> A \<Longrightarrow> f a \<in> f ` A"
-apply simp
-done
+lemma mem_in_image2:
+  assumes "a \<in> A" 
+  shows "f a \<in> f ` A"
+  using assms by simp
 
-lemma mem_in_image3:"b \<in> f ` A \<Longrightarrow> \<exists>a \<in> A. b = f a"
-by (simp add:image_def)
+lemma mem_in_image3:
+  assumes "b \<in> f ` A" 
+  shows "\<exists>a \<in> A. b = f a"
+  using assms image_def[of f A] by simp
 
-lemma elem_in_image2: "\<lbrakk> f \<in> A \<rightarrow> B; A1 \<subseteq> A; x \<in> A1\<rbrakk> \<Longrightarrow> f x \<in> f` A1"
- apply (simp add:image_def)
- apply blast
- done
+lemma elem_in_image2: 
+  assumes "f \<in> A \<rightarrow> B" and "A1 \<subseteq> A" and "x \<in> A1" 
+  shows "f x \<in> f` A1"
+  using assms image_def[of f A1] by auto
 
-lemma funcs_nonempty:"\<lbrakk> A \<noteq> {}; B \<noteq> {} \<rbrakk> \<Longrightarrow> (A \<rightarrow> B) \<noteq> {}"
-apply (subgoal_tac "constmap A B \<in> A \<rightarrow> B") apply (simp add:nonempty)
-apply (simp add:Pi_def)
- apply (rule allI) apply (rule impI)
- apply (simp add:constmap_def)
- apply (frule nonempty_ex[of "B"])
- apply (rule someI2_ex) apply assumption+
-done
+lemma funcs_nonempty:
+  assumes "B \<noteq> {}" 
+  shows "(A \<rightarrow> B) \<noteq> {}"
+proof-
+  have "constmap A B \<in> A \<rightarrow> B"
+    using constmap_def[of A B] assms some_in_eq by auto
+  thus "A \<rightarrow> B \<noteq> {}"
+    by auto
+qed
+      
+lemma idmap_funcs: 
+  shows "idmap A \<in> A \<rightarrow> A"
+  using idmap_def[of A] by simp
 
-lemma idmap_funcs: "idmap A \<in> A \<rightarrow> A"
- apply (simp add:Pi_def restrict_def idmap_def)
- done
-
-
-lemma l_idmap_comp: "\<lbrakk>f \<in> extensional A; f \<in> A \<rightarrow> B\<rbrakk> \<Longrightarrow> 
-                   compose A (idmap B) f = f"
-apply (rule funcset_eq[of _ "A"])
- apply (simp add:compose_def) 
- apply assumption
- apply (rule ballI)
- apply (simp add:funcset_mem[of "f" "A" "B"] compose_def idmap_def)
- done
+lemma l_idmap_comp: 
+  assumes "f \<in> extensional A" and "f \<in> A \<rightarrow> B" 
+  shows "compose A (idmap B) f = f"
+proof-
+  have f1:"(compose A (idmap B) f) \<in> extensional A"
+    by simp
+  have "\<forall>x\<in>A. (compose A (idmap B) f) x = f x"
+    using compose_def[of A "idmap B" f] idmap_def[of B] assms(2) by auto
+  thus "compose A (idmap B) f = f"
+    using f1 assms(1) funcset_eq by blast
+qed
  
-lemma r_idmap_comp:"\<lbrakk>f \<in> extensional A; f \<in> A \<rightarrow> B\<rbrakk> \<Longrightarrow> 
-                                   compose A f (idmap A) = f"
-apply (rule funcset_eq[of _ "A"])
- apply (simp add:compose_def) 
- apply assumption
- apply (rule ballI)
- apply (simp add:funcset_mem[of "f" "A" "B"] compose_def idmap_def)
- done
+lemma r_idmap_comp:
+  assumes "f \<in> extensional A" and "f \<in> A \<rightarrow> B" 
+  shows "compose A f (idmap A) = f"
+proof-
+  have f1:"(compose A f (idmap A)) \<in> extensional A"
+    by simp
+  have "\<forall>x\<in>A. (compose A f (idmap A)) x = f x"
+    using compose_def[of A f "idmap A"] idmap_def[of A] assms(2) by auto
+  thus "compose A f (idmap A) = f"
+    using f1 assms(1) funcset_eq by blast
+qed
  
-lemma extend_fun: "\<lbrakk> f \<in> A \<rightarrow> B; B \<subseteq> B1 \<rbrakk> \<Longrightarrow> f \<in> A \<rightarrow> B1"
- apply (simp add:Pi_def restrict_def)
- apply (rule allI) apply (rule impI)
- apply (simp add:subsetD)
- done
+lemma extend_fun: 
+  assumes "f \<in> A \<rightarrow> B" and  "B \<subseteq> B1" 
+  shows "f \<in> A \<rightarrow> B1"
+  using assms(1) assms(2) by auto
 
-lemma restrict_fun: "\<lbrakk> f \<in> A \<rightarrow> B; A1 \<subseteq> A \<rbrakk> \<Longrightarrow> restrict f A1 \<in> A1 \<rightarrow> B"
- apply (simp add:Pi_def restrict_def)
- apply (rule allI) apply (rule impI) 
- apply (simp add:subsetD)
- done
+lemma restrict_fun: 
+  assumes "f \<in> A \<rightarrow> B" and  "A1 \<subseteq> A" 
+  shows "restrict f A1 \<in> A1 \<rightarrow> B"
+  using assms restrict_def[of f A1] by auto
  
-lemma set_of_hom: "\<forall>x \<in> A. f x \<in> B \<Longrightarrow> restrict f A \<in> A \<rightarrow> B"
- apply (simp add:Pi_def restrict_def)
- done
+lemma set_of_hom: 
+  assumes "\<forall>x \<in> A. f x \<in> B" 
+  shows "restrict f A \<in> A \<rightarrow> B"
+  using assms restrict_def[of f A] by simp
 
-lemma composition : "\<lbrakk> f \<in> A \<rightarrow>  B; g \<in> B \<rightarrow> C\<rbrakk> \<Longrightarrow> (compose A g f) \<in> A \<rightarrow>  C"
- apply (simp add:Pi_def restrict_def compose_def)
- done  
+lemma composition: 
+  assumes "f \<in> A \<rightarrow>  B" and "g \<in> B \<rightarrow> C" 
+  shows "(compose A g f) \<in> A \<rightarrow>  C"
+  using assms compose_def[of A g f] by auto 
 
-lemma comp_assoc:"\<lbrakk>f \<in> A \<rightarrow> B; g \<in> B \<rightarrow> C; h \<in> C \<rightarrow> D \<rbrakk> \<Longrightarrow>
-     compose A h (compose A g f) = compose A (compose B h g) f" 
-apply (rule funcset_eq[of _ "A"])
- apply (simp add:compose_def)
- apply (simp add:compose_def)
-apply (rule ballI)
- apply (simp add:funcset_mem[of "f" "A" "B"] compose_def)
- done
+lemma comp_assoc:
+  assumes "f \<in> A \<rightarrow> B" and  "g \<in> B \<rightarrow> C" and  "h \<in> C \<rightarrow> D" 
+  shows "compose A h (compose A g f) = compose A (compose B h g) f"
+proof-
+  have "\<forall>x\<in>A. compose A h (compose A g f) x = compose A (compose B h g) f x"
+    using compose_def[of A g f] compose_def[of B h g] compose_def[of A h "compose A g f"] 
+compose_def[of A "compose B h g" f] assms(1) by auto
+  thus "?thesis"
+    using funcset_eq
+    by (simp add: \<open>\<And>g f. \<lbrakk>f \<in> extensional A; g \<in> extensional A; \<forall>x\<in>A. f x = g x\<rbrakk> \<Longrightarrow> f = g\<close>)
+qed
 
-lemma restrictfun_inj: "\<lbrakk> inj_on f A; A1 \<subseteq> A \<rbrakk> \<Longrightarrow> inj_on (restrict f A1) A1"
- apply (simp add:inj_on_def) 
- apply (simp add:subsetD)
-done
+lemma restrictfun_inj: 
+  assumes "inj_on f A" and  "A1 \<subseteq> A" 
+  shows "inj_on (restrict f A1) A1"
+  using assms restrict_def[of f A1] subsetD[of A1 A] by (simp add: inj_on_def)
 
-lemma restrict_inj:"\<lbrakk>inj_on f A; A1 \<subseteq> A\<rbrakk> \<Longrightarrow> inj_on f A1"
-apply (simp add:inj_on_def)
- apply ((rule ballI)+, rule impI)
- apply (frule_tac c = x in subsetD[of "A1" "A"], assumption+,
-        frule_tac c = y in subsetD[of "A1" "A"], assumption+)
- apply simp
-done
+lemma restrict_inj:
+  assumes "inj_on f A" and  "A1 \<subseteq> A" 
+  shows "inj_on f A1"
+  using assms subsetD[of A1 A] by (simp add: inj_on_def)
 
-lemma injective:"\<lbrakk> inj_on f A; x \<in> A; y \<in> A; x \<noteq> y \<rbrakk> \<Longrightarrow> f x \<noteq> f y"
-apply (rule contrapos_pp, simp+)
- apply (simp add:inj_on_def)
-done
+lemma injective:
+  assumes "inj_on f A" and "x \<in> A" and "y \<in> A" and "x \<noteq> y" 
+  shows "f x \<noteq> f y"
+  using assms inj_on_def[of f A] contrapos_nn[of "x = y" "f x = f y"] by auto
 
-lemma injective_iff:"\<lbrakk> inj_on f A; x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> 
-                        (x = y) = (f x = f y)"
-apply (rule iffI, simp)
-apply (rule contrapos_pp, simp+)
-apply (frule injective[of "f" "A" "x" "y"], assumption+)
-apply simp
-done
+lemma injective_iff:
+  assumes "inj_on f A" and "x \<in> A" and "y \<in> A" 
+  shows "(x = y) = (f x = f y)"
+  using injective[of f A] assms by auto
 
 lemma injfun_elim_image:"\<lbrakk>f \<in> A \<rightarrow> B; inj_on f A; x \<in> A\<rbrakk> \<Longrightarrow>
                 f ` (A - {x}) = (f ` A) - {f x}"
