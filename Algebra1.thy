@@ -1219,61 +1219,61 @@ lemma invfun_l1:
   using assms by (simp add: bij_to_def invfun_l)
 
 lemma compos_invfun_r:
-  assumes "f \<in> A \<rightarrow> B" and "bij_to f A B" and "g \<in> A \<rightarrow> C" and "h \<in> B \<rightarrow> C" and
-       "g \<in> extensional A" and "compose B g (invfun A B f) = h" 
-     shows "g = compose A h f"
+  assumes "f \<in> A \<rightarrow> B" and "bij_to f A B" and "h \<in> B \<rightarrow> C" and "g \<in> extensional A" 
+and "compose B g (invfun A B f) = h" 
+  shows "g = compose A h f"
 proof
   fix x
-  assume "x \<in> A"
-  have "g ((invfun A B f) (f x)) = h (f x)"
-    using compose_def[of B g "invfun A B f"] assms(6) \<open>x \<in> A\<close> assms(1) by auto
-  hence "g x = h (f x)"
+  have "g ((invfun A B f) (f x)) = h (f x)" if "x \<in> A"
+    using that compose_def[of B g "invfun A B f"] assms(5) assms(1) by auto
+  hence f1:"g x = h (f x)" if "x \<in> A"
     using invfun_l1[of f A B] assms(1) assms(2) by (simp add: \<open>x \<in> A\<close>)
+  have f2:"(compose A h f) \<in> extensional A"
+    using composition[of f A B h C] assms(1) assms(3) by simp
+  from f1 and f2 show  "\<And>x. g x = compose A h f x"
+    using assms(4)
+    by (metis PiE assms(1) assms(2) assms(5) compose_eq extensional_restrict invfun_l1 restrict_apply)
+qed
 
-using compose_def
-apply (rule funcset_eq[of g A "compose A h f"], assumption)
- apply (simp add:compose_def extensional_def)
- apply (rule ballI)
- apply (frule sym, thin_tac "compose B g (invfun A B f) = h", simp)
- apply (simp add:compose_def Pi_def invfun_l1)
-done
+lemma compos_invfun_l:
+  assumes "f \<in> A \<rightarrow> B" and "bij_to f A B" and "g \<in> C \<rightarrow> B" and "h \<in> C \<rightarrow> A" and "compose C (invfun A B f) g = h" 
+and "g \<in> extensional C" 
+  shows "g = compose C f h"
+proof
+  fix x
+  have "(invfun A B f) (g x) = h(x)" if "x \<in> C"
+    using that compose_def[of C "invfun A B f" g] assms(5) by auto
+  hence "f(invfun A B f (g x)) = f(h(x))" if "x \<in> C"
+    by (simp add: that)
+  hence f1:"g(x) = f(h(x))" if "x \<in> C"
+    using that invfun_r1[of f A B "g(x)"] assms(1) assms(2) assms(3) by fastforce
+  have f2:"(compose C f h) \<in> extensional C"
+    using composition[of h C A f B] assms(1) assms(3) by simp
+  from f1 and f2 show  "\<And>x. g x = compose C f h x"
+    using assms(6)
+    by (smt PiE assms(1) assms(2) assms(3) assms(5) compose_eq funcsetI funcset_eq invfun_r1)
+qed
 
-lemma compos_invfun_l:"\<lbrakk>f \<in> A \<rightarrow> B; bij_to f A B; g \<in> C \<rightarrow> B; h \<in> C \<rightarrow> A;
-       compose C (invfun A B f) g = h; g \<in> extensional C \<rbrakk> \<Longrightarrow> 
-                     g = compose C f h"
-apply (rule funcset_eq[of g C "compose C f h"], assumption)
-       apply (simp add:compose_def extensional_def)
-apply (rule ballI)
-apply (frule sym, thin_tac "compose C (invfun A B f) g = h", 
-       simp add:compose_def)
-apply (frule_tac x = x in funcset_mem[of g C B], assumption)
-apply (simp add:invfun_r1)
-done
+lemma invfun_set:
+  assumes "f \<in> A \<rightarrow> B" and "bij_to f A B" and "C \<subseteq> B" 
+  shows "f ` ((invfun A B f)` C) = C"
+proof
+  have "\<And>x. x \<in> (f ` (f\<inverse>\<^bsub>B,A\<^esub>) ` C) \<Longrightarrow> x \<in> C"
+    using assms invfun_r1[of f A B] by auto
+  thus "f ` (f\<inverse>\<^bsub>B,A\<^esub>) ` C \<subseteq> C"
+    by (simp add: subsetI)
+  have "\<And>x. x \<in> C \<Longrightarrow> x \<in> (f ` (f\<inverse>\<^bsub>B,A\<^esub>) ` C)"
+    using assms invfun_r1[of f A B]
+    by (metis (no_types, lifting) image_iff subsetCE)
+  thus " C \<subseteq> f ` (f\<inverse>\<^bsub>B,A\<^esub>) ` C"
+    by (simp add: subsetI)
+qed
 
-lemma invfun_set:"\<lbrakk>f \<in> A \<rightarrow> B; bij_to f A B; C \<subseteq> B\<rbrakk> \<Longrightarrow>
-                f ` ((invfun A B f)` C) = C"
-apply (rule equalityI)
- apply (rule subsetI)
- apply (simp add:image_def, erule exE,
-        erule conjE, erule bexE, simp,
-        frule_tac c = xb in subsetD[of "C" "B"], assumption+)
- apply (simp add:bij_to_def, erule conjE,
-        simp add:invfun_r)
-
-apply (rule subsetI, simp add:image_def)
- apply (frule_tac c = x in subsetD[of "C" "B"], assumption+,
-        simp add:bij_to_def, erule conjE,
-        frule_tac b = x in invfun_r[of "f" "A" "B"], assumption+)
- apply (frule sym, thin_tac "f (invfun A B f x) = x")
- apply blast
-done
-
-lemma compos_bij:"\<lbrakk>f \<in> A \<rightarrow> B; bij_to f A B; g \<in> B \<rightarrow> C; bij_to g B C\<rbrakk> \<Longrightarrow>
-                   bij_to (compose A g f) A C"
-apply (simp add:bij_to_def, (erule conjE)+)
-apply (simp add:comp_inj[of "f" "A" "B" "g" "C"])
-apply (simp add:compose_surj)
-done
+lemma compos_bij:
+  assumes "f \<in> A \<rightarrow> B" and "bij_to f A B" and "g \<in> B \<rightarrow> C" and "bij_to g B C" 
+  shows "bij_to (compose A g f) A C"
+  using assms comp_inj[of f A B g C] compose_surj[of f A B g C]
+  by (simp add: bij_to_def)
 
 section "Nsets"
 
@@ -1295,176 +1295,171 @@ definition
 definition
   jointfun :: "[nat, nat \<Rightarrow> 'a, nat, nat \<Rightarrow> 'a] \<Rightarrow> (nat \<Rightarrow> 'a)" where
   "(jointfun n f m g) = (\<lambda>i. if i \<le> n then f i else  g ((sliden (Suc n)) i))"
+(* Why m is not used in jointfun ?! *)
 
 definition
   skip :: "nat \<Rightarrow> (nat \<Rightarrow> nat)" where
   "skip i = (\<lambda>x. (if i = 0 then Suc x else
                  (if x \<in> {j. j \<le> (i - Suc 0)} then x  else Suc x)))" 
 
-lemma nat_pos:"0 \<le> (l::nat)"
-apply simp
-done
+lemma nat_pos:
+  shows "0 \<le> (l::nat)"
+  by simp
 
-lemma Suc_pos:"Suc k \<le> r \<Longrightarrow> 0 < r"
-apply simp
-done
+lemma Suc_pos:
+  assumes "Suc k \<le> r" 
+  shows "0 < r"
+  using assms by simp
 
-lemma nat_pos2:"(k::nat) < r \<Longrightarrow> 0 < r"
-apply simp
-done
+lemma nat_pos2:
+  assumes "(k::nat) < r" 
+  shows "0 < r"
+  using assms by simp
 
-lemma eq_le_not:"\<lbrakk>(a::nat) \<le> b; \<not> a < b \<rbrakk> \<Longrightarrow> a = b"
-apply auto
-done
+lemma eq_le_not:
+  assumes "(a::nat) \<le> b" and "\<not> a < b" 
+  shows "a = b"
+  using assms by simp
 
-lemma im_of_constmap:"(constmap {0} {a}) ` {0} = {a}" 
-apply (simp add:constmap_def)
-done
+lemma im_of_constmap:
+  shows "(constmap {0} {a}) ` {0} = {a}"
+  by (simp add:constmap_def)
 
-lemma noteq_le_less:"\<lbrakk> m \<le> (n::nat); m \<noteq> n \<rbrakk> \<Longrightarrow> m < n"
-apply auto
-done
+lemma noteq_le_less:
+  assumes "m \<le> (n::nat)" and "m \<noteq> n" 
+  shows "m < n"
+  using assms by simp
 
-lemma nat_not_le_less:"(\<not> (n::nat) \<le> m) = (m < n)"
-by (simp add: not_le)
+lemma nat_not_le_less:
+  shows "(\<not> (n::nat) \<le> m) = (m < n)"
+  by (simp add: not_le)
+(* Is nat_not_le_less not exactly the same as not_le ? *)
 
-lemma self_le:"(n::nat) \<le> n"
-apply simp
-done
+lemma self_le:
+  shows "(n::nat) \<le> n"
+  by simp
 
-lemma n_less_Suc:"(n::nat) < Suc n"
-apply simp
-done
+lemma n_less_Suc:
+  shows "(n::nat) < Suc n"
+  by simp
 
-lemma less_diff_pos:"i < (n::nat) \<Longrightarrow> 0 < n - i"
-apply auto
-done
+lemma less_diff_pos:
+  assumes "i < (n::nat)" 
+  shows "0 < n - i"
+  using assms by simp
 
-lemma less_diff_Suc:"i < (n::nat) \<Longrightarrow> n - (Suc i) = (n - i) - (Suc 0)"
-apply auto
-done
+lemma less_diff_Suc:
+  assumes "i < (n::nat)" 
+  shows "n - (Suc i) = (n - i) - (Suc 0)"
+  using assms by simp
 
-lemma less_pre_n:"0 < n \<Longrightarrow> n - Suc 0 < n"
-apply simp
-done
+lemma less_pre_n:
+  assumes "0 < n" 
+  shows "n - Suc 0 < n"
+  using assms by simp
 
-lemma Nset_inc_0:"(0::nat) \<in> {i. i \<le> n}"
-apply simp 
-done 
+lemma Nset_inc_0:
+  shows "(0::nat) \<in> {i. i \<le> n}"
+  by simp
 
-lemma Nset_1:"{i. i \<le> Suc 0} = {0, Suc 0}"
-apply auto
-done
+lemma Nset_1:
+  shows "{i. i \<le> Suc 0} = {0, Suc 0}"
+  by auto
 
-lemma Nset_1_1:"(k \<le> Suc 0) = (k = 0 \<or> k = Suc 0)"
-apply (rule iffI)
-apply (case_tac "k = 0", simp+)
-apply (erule disjE, simp+)
-done
+lemma Nset_1_1:
+  shows "(k \<le> Suc 0) = (k = 0 \<or> k = Suc 0)"
+  by linarith
 
-lemma Nset_2:"{i, j} = {j, i}"
-apply auto
-done
+lemma Nset_2:
+  shows "{i, j} = {j, i}"
+  by auto
 
-lemma Nset_nonempty:"{i. i \<le> (n::nat)} \<noteq> {}"
-apply (subgoal_tac "0 \<in> {i. i \<le> n}")
-apply (rule nonempty[of 0], assumption)
-apply simp 
-done
+lemma Nset_nonempty:
+  shows "{i. i \<le> (n::nat)} \<noteq> {}"
+  by auto
 
-lemma Nset_le:"x \<in> {i. i \<le> n} \<Longrightarrow> x \<le> n"
-apply simp 
-done
+lemma Nset_le:
+  assumes "x \<in> {i. i \<le> n}" 
+  shows "x \<le> n"
+  using assms by simp
 
-lemma n_in_Nsetn:"(n::nat) \<in> {i. i \<le> n}"
-apply simp 
-done
+lemma n_in_Nsetn:
+  shows "(n::nat) \<in> {i. i \<le> n}"
+  by simp 
 
-lemma Nset_pre:"\<lbrakk> (x::nat) \<in> {i. i \<le> (Suc n)}; x \<noteq> Suc n \<rbrakk> \<Longrightarrow> x \<in> {i. i \<le> n}"
-apply simp 
-done
+lemma Nset_pre:
+  assumes "(x::nat) \<in> {i. i \<le> (Suc n)}" and "x \<noteq> Suc n" 
+  shows "x \<in> {i. i \<le> n}"
+  using assms by simp 
 
-lemma Nset_pre1:"{i. i \<le> (Suc n)} - {Suc n} = {i. i \<le> n}"
-apply (rule equalityI)
- apply (rule subsetI, simp)+
-done
+lemma Nset_pre1:
+  shows "{i. i \<le> (Suc n)} - {Suc n} = {i. i \<le> n}"
+proof
+  show "{i. i \<le> Suc n} - {Suc n} \<subseteq> {i. i \<le> n}"
+    by auto
+  show "{i. i \<le> n} \<subseteq> {i. i \<le> Suc n} - {Suc n}"
+    by auto
+qed
 
-lemma le_Suc_mem_Nsetn:"x \<le> Suc n \<Longrightarrow> x - Suc 0 \<in> {i. i \<le> n}"
-apply (frule diff_le_mono[of x "Suc n" "Suc 0"],
-       thin_tac "x \<le> Suc n", simp)
-done
+lemma le_Suc_mem_Nsetn:
+  assumes "x \<le> Suc n" 
+  shows "x - Suc 0 \<in> {i. i \<le> n}"
+  using assms diff_le_mono[of x "Suc n" "Suc 0"] by simp
 
-lemma le_Suc_diff_le:"x \<le> Suc n \<Longrightarrow> x - Suc 0 \<le> n"
-apply (frule diff_le_mono[of x "Suc n" "Suc 0"],
-       thin_tac "x \<le> Suc n", simp)
-done
+lemma le_Suc_diff_le:
+  assumes "x \<le> Suc n" 
+  shows "x - Suc 0 \<le> n"
+  using assms by auto
 
-lemma Nset_not_pre:"\<lbrakk> x \<notin> {i. i \<le> n}; x \<in> {i. i \<le> (Suc n)}\<rbrakk> \<Longrightarrow> x = Suc n"
-by simp
+lemma Nset_not_pre:
+  assumes "x \<notin> {i. i \<le> n}" and "x \<in> {i. i \<le> (Suc n)}" 
+  shows "x = Suc n"
+  using assms by simp
 
-lemma mem_of_Nset:"x \<le> (n::nat) \<Longrightarrow> x \<in> {i. i \<le> n}"
-apply simp 
-done
+lemma mem_of_Nset:
+  assumes "x \<le> (n::nat)" 
+  shows "x \<in> {i. i \<le> n}"
+  using assms by simp
 
-lemma less_mem_of_Nset:"x < (n::nat) \<Longrightarrow> x \<in> {i. i \<le> n}"
-apply (frule less_imp_le [of "x" "n"])
-apply simp
-done
+lemma less_mem_of_Nset:
+  assumes "x < (n::nat)" 
+  shows "x \<in> {i. i \<le> n}"
+  by (simp add: assms less_imp_le)
 
-lemma Nset_nset:"{i. i \<le> (Suc (n + m))} = {i. i \<le> n} \<union> 
-                                            nset (Suc n) (Suc (n + m))"
-apply (rule equalityI)
- apply (rule subsetI)
- apply (simp add:nset_def)
-  apply (auto simp add: nset_def)
-done
+lemma Nset_nset:
+  shows "{i. i \<le> (Suc (n + m))} = {i. i \<le> n} \<union> nset (Suc n) (Suc (n + m))"
+proof
+  show "{i. i \<le> Suc (n + m)} \<subseteq> {i. i \<le> n} \<union> nset (Suc n) (Suc (n + m))"
+    using nset_def[of "Suc n" "Suc (n + m)"] not_less_eq_eq by auto
+  show "{i. i \<le> n} \<union> nset (Suc n) (Suc (n + m)) \<subseteq> {i. i \<le> Suc (n + m)}"
+    using nset_def[of "Suc n" "Suc (n + m)"]
+    using less_Suc_eq_le subsetI by auto
+qed
 
-lemma Nset_nset_1:"\<lbrakk>0 < n; i < n\<rbrakk> \<Longrightarrow> {j. j \<le> n} = {j. j \<le> i} \<union> 
-                                                           nset (Suc i) n"
-apply auto
- apply (simp add:nset_def)
- apply (simp add:nset_def)
-done
+lemma Nset_nset_1:
+  assumes "0 < n" and "i < n" 
+  shows "{j. j \<le> n} = {j. j \<le> i} \<union> nset (Suc i) n"
+proof
+  show "{j. j \<le> n} \<subseteq> {j. j \<le> i} \<union> nset (Suc i) n"
+    using assms nset_def[of "(Suc i)" n] not_less_eq_eq by auto
+  show "{j. j \<le> i} \<union> nset (Suc i) n \<subseteq> {j. j \<le> n}"
+    using assms nset_def[of "(Suc i)" n] order_trans by auto
+qed
 
-lemma Nset_img0:"\<lbrakk>f \<in> {j. j \<le> Suc n} \<rightarrow> B; (f (Suc n)) \<in> f ` {j. j \<le> n}\<rbrakk> \<Longrightarrow>
-                   f ` {j. j \<le> Suc n} = f ` {j. j \<le> n}"
-apply (rule equalityI)
- apply (rule subsetI)
- apply (simp add:image_def)
- apply (erule exE, erule conjE)
- apply (erule exE, simp, erule conjE)
- apply (case_tac "xb = Suc n", simp, blast)
- apply (frule_tac m = xb and n = "Suc n" in noteq_le_less, assumption,
-         thin_tac "xb \<le> Suc n",
-         frule_tac x = xb and n = "Suc n" in less_le_diff,
-         thin_tac "xb < Suc n", simp, blast)
- apply (rule subsetI, simp add:image_def, (erule exE)+, (erule conjE)+)
- apply (simp,
-        frule_tac x = xb and y = n and z = "Suc n" in le_less_trans,
-        simp,
-        frule_tac x = xb and y = "Suc n" in less_imp_le,
-         blast)
-done
+lemma Nset_img0:
+  assumes "f \<in> {j. j \<le> Suc n} \<rightarrow> B" and "(f (Suc n)) \<in> f ` {j. j \<le> n}" 
+  shows "f ` {j. j \<le> Suc n} = f ` {j. j \<le> n}"
+proof
+  show "f ` {j. j \<le> Suc n} \<subseteq> f ` {j. j \<le> n}"
+    using assms image_def le_Suc_eq by auto
+  show "f ` {j. j \<le> n} \<subseteq> f ` {j. j \<le> Suc n}"
+    using assms image_def by auto
+qed
 
-lemma Nset_img:"f \<in> {j. j \<le> Suc n} \<rightarrow> B \<Longrightarrow>
-         insert (f (Suc n)) (f ` {j. j \<le> n}) = f ` {j. j \<le> Suc n}"
-apply (rule equalityI)
- apply (rule subsetI)
- apply (simp add:image_def,
-        erule disjE, blast,
-        erule exE, erule conjE,
-        frule_tac x = xa and y = n and z = "Suc n" in le_less_trans,
-        simp+,
-        frule_tac x = xa and y = "Suc n" in less_imp_le, blast)
- apply (rule subsetI,
-        simp add:image_def,
-        erule exE, simp, erule conjE,
-        case_tac "xa = Suc n", simp)
- apply (frule_tac m = xa and n = "Suc n" in noteq_le_less, assumption,
-        frule_tac x = xa and n = "Suc n" in less_le_diff,
-        thin_tac "xa \<le> Suc n", thin_tac "xa < Suc n", simp)
- apply blast
-done
+lemma Nset_img:
+  assumes "f \<in> {j. j \<le> Suc n} \<rightarrow> B" 
+  shows "insert (f (Suc n)) (f ` {j. j \<le> n}) = f ` {j. j \<le> Suc n}"
+  by (metis atMost_Suc atMost_def image_insert)
 
 primrec nasc_seq :: "[nat set, nat, nat] \<Rightarrow> nat"
 where
@@ -1472,14 +1467,26 @@ where
 | dec_seq_Suc: "nasc_seq A a (Suc n) =
                      (SOME b. ((b \<in> A) \<and> (nasc_seq A a n) < b))"
 
-lemma nasc_seq_mem:"\<lbrakk>(a::nat) \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk> \<Longrightarrow>
-                        (nasc_seq A a n) \<in> A"
-apply (induct n)
-apply (simp_all add: not_le)
-apply (subgoal_tac "\<exists>x\<in>A. (nasc_seq A a n) < x") prefer 2 apply blast
- apply (thin_tac "\<forall>m. m \<in> A \<longrightarrow> (\<exists>x\<in>A. m < x)",
-        rule someI2_ex, blast, simp)
-done
+lemma nasc_seq_mem:
+  assumes "(a::nat) \<in> A" and "\<not> (\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. x \<le> m))" 
+  shows "(nasc_seq A a n) \<in> A"
+proof(induct n)
+  case 0
+  then show "nasc_seq A a 0 \<in> A"
+    using assms(1) by simp
+next
+  case (Suc n)
+  from Suc.hyps show "nasc_seq A a (Suc n) \<in> A"
+  proof-
+    obtain b where "b \<in> A \<and> (nasc_seq A a n) < b"
+      using assms(2) Suc.hyps not_less by blast
+    hence "{b. b \<in> A \<and> (nasc_seq A a n) < b} \<noteq> {}"
+      by auto
+    thus "nasc_seq A a n \<in> A \<Longrightarrow> nasc_seq A a (Suc n) \<in> A"
+      using dec_seq_Suc[of A a n]
+      by (metis Collect_empty_eq some_eq_ex)
+  qed
+qed
 
 lemma nasc_seqn:"\<lbrakk>(a::nat) \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk> \<Longrightarrow>
                                (nasc_seq A a n) < (nasc_seq A a (Suc n))"
