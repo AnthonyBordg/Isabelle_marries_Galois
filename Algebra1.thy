@@ -1488,125 +1488,140 @@ next
   qed
 qed
 
-lemma nasc_seqn:"\<lbrakk>(a::nat) \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk> \<Longrightarrow>
-                               (nasc_seq A a n) < (nasc_seq A a (Suc n))"
-apply (simp,
-       frule nasc_seq_mem [of "a" "A" "n"], simp) 
-apply (simp add: not_le,
-       subgoal_tac "\<exists>x\<in>A. (nasc_seq A a n) < x") prefer 2 apply simp
- apply (thin_tac "\<forall>m. m \<in> A \<longrightarrow> (\<exists>x\<in>A. m < x)",
-        rule someI2_ex, blast, simp)
-done
+lemma nasc_seqn:
+  assumes "(a::nat) \<in> A" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))" 
+  shows "(nasc_seq A a n) < (nasc_seq A a (Suc n))"
+proof-
+  obtain b where "b \<in> A \<and> (nasc_seq A a n) < b"
+    using assms by (metis nasc_seq_mem nat_not_less)
+  hence "{b. b \<in> A \<and> (nasc_seq A a n) < b} \<noteq> {}"
+    by auto
+  thus "(nasc_seq A a n) < (nasc_seq A a (Suc n))"
+    using dec_seq_Suc[of A a n] by (metis Collect_empty_eq some_eq_ex)
+qed
 
-lemma nasc_seqn1:"\<lbrakk>(a::nat) \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk> \<Longrightarrow>
-                             Suc (nasc_seq A a n) \<le> (nasc_seq A a (Suc n))"
-apply (frule nasc_seqn [of "a" "A" "n"], assumption+)
- apply simp
-done
+lemma nasc_seqn1:
+  assumes "(a::nat) \<in> A" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))" 
+  shows "Suc (nasc_seq A a n) \<le> (nasc_seq A a (Suc n))"
+  using assms nasc_seqn[of a A n] Suc_leI by simp
 
-lemma ubs_ex_n_maxTr:"\<lbrakk>(a::nat) \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk>
-      \<Longrightarrow>  (a + n) \<le> (nasc_seq A a n)"
-apply (induct_tac n)
- apply simp
-apply (frule_tac n = n in nasc_seqn1[of "a" "A"], assumption+,
-       subgoal_tac "Suc (a + n) \<le> Suc (nasc_seq A a n)",
-       frule_tac i = "Suc (a + n)" and j = "Suc (nasc_seq A a n)" and
-                  k = "nasc_seq A a (Suc n)" in le_trans, assumption+,
-       simp, thin_tac "Suc (nasc_seq A a n) \<le> nasc_seq A a (Suc n)",
-       subst Suc_le_mono, assumption+) 
-done
+lemma ubs_ex_n_maxTr:
+  assumes "(a::nat) \<in> A" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))"
+  shows "(a + n) \<le> (nasc_seq A a n)"
+proof(induct n)
+  case 0
+  then show "a + 0 \<le> nasc_seq A a 0"
+    using dec_seq_0[of A a] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "a + Suc n \<le> nasc_seq A a (Suc n)"
+  proof-
+    have "a + Suc n \<le> Suc (nasc_seq A a n)"
+      using Suc.hyps by auto
+    hence "a + Suc n  \<le> nasc_seq A a (Suc n)"
+      using assms nasc_seqn1[of a A n] le_trans by simp
+    thus "a + n \<le> nasc_seq A a n \<Longrightarrow> a + Suc n \<le> nasc_seq A a (Suc n)"
+      by simp
+  qed
+qed
 
-lemma ubs_ex_n_max:"\<lbrakk>A \<noteq> {}; A \<subseteq> {i. i \<le> (n::nat)}\<rbrakk> \<Longrightarrow> 
-                                      \<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m)"
-apply (frule nonempty_ex[of "A"])
- apply (thin_tac "A \<noteq> {}")
- apply (erule exE)
-apply (rename_tac a)
-apply (rule ex_ex1I)
-prefer 2
- apply (erule conjE)+
- apply (frule_tac x = y in bspec, assumption+,
-        thin_tac "\<forall>x\<in>A. x \<le> m",
-        frule_tac x = m in bspec, assumption+,
-        thin_tac "\<forall>x\<in>A. x \<le> y", simp)
-
-apply (rule contrapos_pp, simp+)
-      
-apply (frule_tac a = a and A = A and n = "n + 1" in ubs_ex_n_maxTr, simp) 
-apply (frule_tac a = a in nasc_seq_mem[of _ "A" "n + 1"], simp) 
-apply (frule_tac c = "nasc_seq A a (n + 1)" in subsetD[of "A" "{i. i \<le> n}"],
-         assumption+, simp)
-done
+lemma ubs_ex_n_max:
+  assumes "A \<noteq> {}" and "A \<subseteq> {i. i \<le> (n::nat)}" 
+  shows "\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m)"
+proof-
+  obtain a where "a \<in> A"
+    using assms(1) by auto
+  hence "nasc_seq A a (Suc n) \<in> A" if "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))"
+    using that nasc_seq_mem[of a A "Suc n"] by simp
+  hence "\<exists>b. b \<in> A \<and> (nasc_seq A a n) < b" if "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))"
+    using that dec_seq_Suc[of A a n] \<open>a \<in> A\<close> nasc_seqn by auto
+  hence "\<exists>b. b \<in> A \<and> (a + n) < b" if "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))"
+    using that ubs_ex_n_maxTr[of a A n] \<open>a \<in> A\<close> by auto
+  hence "\<exists>b. b \<in> A \<and> n < b" if "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))"
+    using that by auto
+  hence f1:"False" if "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))"
+    using that assms(2) by auto
+  from f1 obtain m where "m\<in>A \<and> (\<forall>x\<in>A. x \<le> m)"
+    by auto
+  then have "\<forall>n. n \<in> A \<and> (\<forall>x\<in>A. x \<le> n) \<longrightarrow> n = m"
+    using le_antisym by blast
+  thus "\<exists>!m. m \<in> A \<and> (\<forall>x\<in>A. x \<le> m)"
+    using \<open>m \<in> A \<and> (\<forall>x\<in>A. x \<le> m)\<close> by blast
+qed
  
 definition
   n_max :: "nat set \<Rightarrow> nat" where
   "n_max A = (THE m. m \<in> A \<and> (\<forall>x\<in>A. x \<le> m))"
 
-lemma n_max:"\<lbrakk>A \<subseteq> {i. i \<le> (n::nat)}; A \<noteq> {}\<rbrakk> \<Longrightarrow> 
-                    (n_max A) \<in> A \<and> (\<forall>x\<in>A. x \<le> (n_max A))" 
-apply (simp add:n_max_def)
-apply (frule ubs_ex_n_max[of "A" "n"], assumption)
-apply (rule theI')
-apply assumption
-done
+lemma n_max:
+  assumes "A \<subseteq> {i. i \<le> (n::nat)}" and "A \<noteq> {}" 
+  shows "(n_max A) \<in> A \<and> (\<forall>x\<in>A. x \<le> (n_max A))"
+proof-
+  have f1:"\<exists>!m. m \<in> A \<and> (\<forall>x\<in>A. x \<le> m)"
+    using assms ubs_ex_n_max[of A n] by simp
+  thus "n_max A \<in> A \<and> (\<forall>x\<in>A. x \<le> n_max A)"
+    using n_max_def[of A] theI'[OF f1] by simp
+qed
 
-lemma n_max_eq_sets:"\<lbrakk>A = B; A \<noteq> {}; \<exists>n. A \<subseteq> {j. j \<le> n}\<rbrakk> \<Longrightarrow>
-                          n_max A = n_max B"
-by simp 
- (* n_max has no meaning unless conditions A \<noteq> {}; \<exists>n. A \<subseteq> {j. j \<le> n} *)
+lemma n_max_eq_sets:
+  assumes "A = B" and "A \<noteq> {}" and "\<exists>n. A \<subseteq> {j. j \<le> n}" 
+  shows "n_max A = n_max B"
+  using assms by simp 
+ (* n_max has no meaning unless conditions A \<noteq> {} and \<exists>n. A \<subseteq> {j. j \<le> n} hold *)
 
-lemma skip_mem:"l \<in> {i. i \<le> n} \<Longrightarrow> (skip i l) \<in> {i. i \<le> (Suc n)}"
-apply (case_tac "i = 0")
- apply (simp add:skip_def)
- apply (simp)+
-apply (simp add:skip_def) 
-done
+lemma skip_mem:
+  assumes "l \<in> {i. i \<le> n}" 
+  shows "(skip i l) \<in> {i. i \<le> (Suc n)}"
+  using assms skip_def[of i] by simp
 
-lemma skip_fun:"(skip i) \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> (Suc n)}"
-apply (rule Pi_I)
-apply (rule skip_mem, assumption)
-done
+lemma skip_fun:
+  shows "(skip i) \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> (Suc n)}"
+  using skip_def[of i] by simp
 
-lemma skip_im_Tr0:"x \<in> {i. i \<le> n} \<Longrightarrow> skip 0 x = Suc x"
-apply (simp add:skip_def)
-done
+lemma skip_im_Tr0:
+  assumes "x \<in> {i. i \<le> n}" 
+  shows "skip 0 x = Suc x"
+  using assms skip_def[of 0] by simp
 
-lemma skip_im_Tr0_1:"0 < y \<Longrightarrow> skip 0 (y - Suc 0) = y"
-apply (simp add:skip_def)
-done
+lemma skip_im_Tr0_1:
+  assumes "0 < y" 
+  shows "skip 0 (y - Suc 0) = y"
+  using assms skip_def[of 0] by simp
 
-lemma skip_im_Tr1:"\<lbrakk> i \<in> {i. i \<le> (Suc n)}; 0 < i; x \<le> i - Suc 0 \<rbrakk> \<Longrightarrow>
-           skip i x = x"
-by (simp add:skip_def)
+lemma skip_im_Tr1:
+  assumes "i \<in> {i. i \<le> (Suc n)}" and "0 < i" and "x \<le> i - Suc 0" 
+  shows "skip i x = x"
+  using assms skip_def[of i] by simp
 
-lemma skip_im_Tr1_1:"\<lbrakk> i \<in> {i. i \<le> (Suc n)}; 0 < i; x < i\<rbrakk> \<Longrightarrow>
-                       skip i x = x"
-apply (frule less_le_diff[of x i])
-apply (simp add:skip_def)
-done
+lemma skip_im_Tr1_1:
+  assumes "i \<in> {i. i \<le> (Suc n)}" and "0 < i" and "x < i" 
+  shows "skip i x = x"
+  using assms skip_def[of i] by simp
 
-lemma skip_im_Tr1_2:"\<lbrakk> i \<le> (Suc n); x < i\<rbrakk> \<Longrightarrow>  skip i x = x"
-apply (rule skip_im_Tr1_1[of i n x], simp+) 
-done
+lemma skip_im_Tr1_2:
+  assumes "i \<le> (Suc n)" and "x < i" 
+  shows "skip i x = x"
+  using assms skip_def[of i] by simp
 
-lemma skip_im_Tr2:"\<lbrakk> 0 < i; i \<in> {i. i \<le> (Suc n)}; i \<le> x\<rbrakk> \<Longrightarrow>
-      skip i x = Suc x"
-by (simp add:skip_def)
+lemma skip_im_Tr2:
+  assumes "0 < i" and "i \<in> {i. i \<le> (Suc n)}" and "i \<le> x" 
+  shows "skip i x = Suc x"
+  using assms skip_def[of i] by simp
 
-lemma skip_im_Tr2_1:"\<lbrakk>i \<in> {i. i \<le> (Suc n)}; i \<le> x\<rbrakk> \<Longrightarrow>
-                             skip i x = Suc x"
-apply (case_tac "i = 0")
-   apply (simp add:skip_def)
-apply (simp, rule skip_im_Tr2, assumption+, simp+)
-done
+lemma skip_im_Tr2_1:
+  assumes "i \<in> {i. i \<le> (Suc n)}" and "i \<le> x" 
+  shows "skip i x = Suc x"
+  using assms skip_def[of i] by auto
 
-lemma skip_im_Tr3:"x \<in> {i. i \<le> n} \<Longrightarrow> skip (Suc n) x = x"
-apply (simp add:skip_def)
-done
+lemma skip_im_Tr3:
+  assumes "x \<in> {i. i \<le> n}" 
+  shows "skip (Suc n) x = x"
+  using assms skip_def[of "Suc n"] by simp
 
-lemma skip_im_Tr4:"\<lbrakk>x \<le> Suc n; 0 < x\<rbrakk> \<Longrightarrow> x - Suc 0 \<le> n"
- apply (simp add:Suc_le_mono [of "x - Suc 0" "n", THEN sym])
-done
+lemma skip_im_Tr4:
+  assumes "x \<le> Suc n" and "0 < x" 
+  shows "x - Suc 0 \<le> n"
+  using assms by simp
    
 lemma skip_fun_im:"i \<in> {j. j \<le> (Suc n)} \<Longrightarrow> 
               (skip i) ` {j. j \<le> n} = ({j. j \<le> (Suc n)} - {i})"
