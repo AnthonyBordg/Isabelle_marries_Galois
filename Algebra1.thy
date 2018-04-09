@@ -1623,43 +1623,40 @@ lemma skip_im_Tr4:
   shows "x - Suc 0 \<le> n"
   using assms by simp
    
-lemma skip_fun_im:"i \<in> {j. j \<le> (Suc n)} \<Longrightarrow> 
-              (skip i) ` {j. j \<le> n} = ({j. j \<le> (Suc n)} - {i})"
-apply (rule equalityI)
- apply (rule subsetI)
- apply (case_tac "i = 0", simp)
- apply (simp add:image_def, erule exE, erule conjE)
- apply (cut_tac x = xa in skip_im_Tr0[of _ n], simp, simp)
- 
- apply (simp add:image_def, erule exE, erule conjE, simp)
- apply (case_tac "xa < i")
- apply (frule_tac x = xa in skip_im_Tr1_2[of i n], simp+)
- apply (cut_tac m1 = xa and n1 = i in nat_not_le_less[THEN sym], simp)
- apply (cut_tac x = xa and n = n in skip_im_Tr2_1[of i], simp+)
- 
-apply (rule subsetI, simp, erule conjE)
- apply (cut_tac x = x and y = i in less_linear, simp)
- apply (erule disjE)
- apply (simp add:image_def)
- apply (frule_tac x = x in skip_im_Tr1_2[of i n], assumption,
-        frule_tac x = x and y = i and z = "Suc n" in less_le_trans, 
-        assumption+,
-        frule_tac m = x and n = "Suc n" in Suc_leI,
-        simp only:Suc_le_mono,
-        frule sym, thin_tac "skip i x = x", blast)
- apply (cut_tac x = "x - Suc 0" in skip_im_Tr2_1[of i n],
-        simp, simp add:less_le_diff)
- apply (cut_tac x = i and n = x in less_le_diff, assumption,
-        simp add:image_def)
- apply (frule_tac m = x and n = "Suc n" and l = "Suc 0" in diff_le_mono,
-        simp) 
- apply (frule sym, thin_tac "skip i (x - Suc 0) = x", blast)
-done
+lemma skip_fun_im:
+  assumes "i \<in> {j. j \<le> (Suc n)}" 
+  shows "(skip i) ` {j. j \<le> n} = ({j. j \<le> (Suc n)} - {i})"
+proof
+  have "\<And>x. x \<in> (skip i) ` {j. j \<le> n} \<Longrightarrow> x \<in> ({j. j \<le> Suc n} - {i})"
+    using assms skip_def[of i] image_def[of "skip i" "{j. j \<le> n}"] by force
+  thus "skip i ` {j. j \<le> n} \<subseteq> {j. j \<le> Suc n} - {i}"
+    using subsetI by auto
+  have "\<And>x. x \<in> ({j. j \<le> Suc n} - {i}) \<Longrightarrow> x \<in> (skip i) ` {j. j \<le> n}"
+  proof-
+    fix x
+    assume a1:"x \<in> ({j. j \<le> Suc n} - {i})"
+    have f1:"(skip i) (x - 1) = x" if "i = 0"
+      using that skip_im_Tr0_1[of x] a1 by auto
+    have f2:"(skip i) x = x" if "x < i"
+      using that assms skip_im_Tr1_2[of i n x] by simp
+    have f3:"skip i (x - 1) = x" if "i \<noteq> 0" and "i < x"
+      using that skip_def[of i]
+      by (metis (no_types, lifting) One_nat_def Suc_diff_1 less_le_diff mem_Collect_eq nat_not_less1 nat_pos2 not_less)
+    from f1 f2 f3 have "x \<in> skip i ` {j. j \<le> n}"
+      using skip_def[of i] image_def[of "skip i" "{j. j \<le> n}"]
+      by (smt DiffE Suc_le_mono Suc_pred a1 assms in_diff1 le_Suc_eq mem_Collect_eq nat_neq_iff nat_pos2 not_le)
+    thus "\<And>x. x \<in> ({j. j \<le> Suc n} - {i}) \<Longrightarrow> x \<in> skip i ` {j. j \<le> n}"
+      using skip_def[of i] image_def[of "skip i" "{j. j \<le> n}"]
+      by (smt DiffE Suc_pred assms in_diff1 le_Suc_mem_Nsetn le_simps(3) less_Suc_eq mem_Collect_eq nat_pos2 not_less)
+  qed
+  thus "{j. j \<le> Suc n} - {i} \<subseteq> skip i ` {j. j \<le> n}"
+    using subsetI by auto
+qed
 
-lemma skip_fun_im1:"\<lbrakk>i \<in> {j. j \<le> (Suc n)}; x \<in> {j. j \<le> n}\<rbrakk> \<Longrightarrow> 
-                      (skip i) x \<in> ({j. j \<le> (Suc n)} - {i})"
-by (subst skip_fun_im[THEN sym], assumption,
-    simp add:image_def, blast)
+lemma skip_fun_im1:
+  assumes "i \<in> {j. j \<le> (Suc n)}" and "x \<in> {j. j \<le> n}" 
+  shows "(skip i) x \<in> ({j. j \<le> (Suc n)} - {i})"
+  using assms skip_fun_im[of i n] by auto
 
 lemma skip_id:"l < i \<Longrightarrow> skip i l = l"
 apply (simp add:skip_def )
