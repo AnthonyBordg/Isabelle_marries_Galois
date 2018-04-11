@@ -1872,111 +1872,109 @@ lemma nat_le:
   shows "((a::nat) - (a + 1)) \<le> 0"
   by auto
 
-lemma ex_Nleast:"(A::nat set) \<noteq> {} \<Longrightarrow> \<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x)"
-apply (frule nonempty_ex[of "A"], thin_tac "A \<noteq> {}",
-       erule exE, rename_tac a)
-apply (case_tac "0 \<in> A")
- apply (rule ex_ex1I, subgoal_tac "\<forall>x\<in>A. 0 \<le> a", blast,
-        rule ballI, simp)
- apply ((erule conjE)+, 
-        subgoal_tac "m \<le> 0", thin_tac "\<forall>x\<in>A. m \<le> x",
-        subgoal_tac "y \<le> 0", thin_tac "\<forall>x\<in>A. y \<le> x",
-        simp, blast, blast)
-apply (rule ex_ex1I)
-prefer 2 apply (erule conjE)+
-  apply (subgoal_tac "m \<le> y", thin_tac "\<forall>x\<in>A. m \<le> x",
-         subgoal_tac "y \<le> m", thin_tac "\<forall>x\<in>A. y \<le> x",
-         simp, blast, blast)
-apply (rule contrapos_pp, simp, 
-       frule_tac a = a and A = A and n = "a + 1" in ex_NleastTr, assumption+)
- apply (subgoal_tac "(a - (a + 1)) \<le> 0")
- prefer 2 apply (rule nat_le)
- apply (frule_tac i = "ndec_seq A a (a + 1)" and j = "a - (a + 1)" and k = 0 in le_trans, assumption+,
-        frule_tac a = a and n = "a + 1" in ndec_seq_mem [of _ "A"], 
-                                                          assumption+)
- apply (thin_tac "\<not> (\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x))",
-        thin_tac "ndec_seq A a (a + 1) \<le> a - (a + 1)",
-        thin_tac "a - (a + 1) \<le> 0")
-apply simp
-done 
+lemma ex_Nleast:
+  assumes "(A::nat set) \<noteq> {}" 
+  shows "\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x)"
+proof-
+  obtain a where "a \<in> A"
+    using assms by auto
+  have "0 \<in> A \<and> (\<forall>x\<in>A. 0 \<le> x)" if "0 \<in> A"
+    using that by simp
+  have "\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)" if "0 \<notin> A"
+  proof-
+    have "ndec_seq A a a \<le> 0" if "\<not>(\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x))"
+      using that ex_NleastTr[of a A a] by (simp add: \<open>a \<in> A\<close>)
+    hence "0 \<in> A" if "\<not>(\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x))"
+      using that ndec_seq_mem[of a A a] by (simp add: \<open>a \<in> A\<close>)
+    thus "\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)"
+      by auto
+  qed
+  obtain m where "m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)"
+    using \<open>0 \<notin> A \<Longrightarrow> \<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)\<close> by auto
+  have "n = m" if "n \<in> A \<and> (\<forall>x\<in>A. n \<le> x)"
+    using that by (simp add: \<open>m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)\<close> le_antisym)
+  thus "\<exists>!m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)"
+    by (meson \<open>m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)\<close> eq_iff)
+qed
 
 lemma Nleast:"(A::nat set) \<noteq> {} \<Longrightarrow> Nleast A \<in> A \<and> (\<forall>x\<in>A. (Nleast A) \<le> x)"
 apply (frule ex_Nleast [of "A"])
  apply (simp add:Nleast_def)
  apply (rule theI')
  apply simp
-done
+  done
+(* If I use Isar to write the lemma above, then slegehammer is unable to conclude using assms ex_Nleast[of A] 
+Nleast_def[of A] theI' and I don't understand why *)
 
 subsection "Lemmas for existence of reduced chain."
 (* Later some of these lemmas should be removed. *)
 
-lemma jointgd_tool1:" 0 < i \<Longrightarrow> 0 \<le> i - Suc 0"
-by arith
+lemma jointgd_tool1:
+  assumes "0 < i" 
+  shows "0 \<le> i - Suc 0"
+  using assms by simp
 
-lemma jointgd_tool2:" 0 < i \<Longrightarrow> i = Suc (i - Suc 0)"
-by arith
+lemma jointgd_tool2:
+  assumes "0 < i" 
+  shows "i = Suc (i - Suc 0)"
+  using assms by simp
 
-lemma jointgd_tool3:"\<lbrakk>0 < i;  i \<le> m\<rbrakk> \<Longrightarrow> i - Suc 0 \<le> (m - Suc 0)"
-by arith
+lemma jointgd_tool3:
+  assumes "0 < i" and "i \<le> m" 
+  shows "i - Suc 0 \<le> (m - Suc 0)"
+  using assms by simp
 
-lemma jointgd_tool4:"n < i \<Longrightarrow> i - n = Suc( i - Suc n)"
-by arith
+lemma jointgd_tool4:
+  assumes "n < i" 
+  shows "i - n = Suc( i - Suc n)"
+  using assms by simp
 
-lemma pos_prec_less:"0 < i \<Longrightarrow> i - Suc 0 < i"
-by arith
+lemma pos_prec_less:
+  assumes "0 < i" 
+  shows "i - Suc 0 < i"
+  using assms by simp
 
-lemma Un_less_Un:"\<lbrakk>f \<in> {j. j \<le> (Suc n)} \<rightarrow> (X::'a set set); 
-        A \<subseteq> \<Union>(f ` {j. j \<le> (Suc n)}); 
-       i \<in> {j. j \<le> (Suc n)}; j \<in> {l. l \<le> (Suc n)}; i \<noteq> j \<and> f i \<subseteq> f j\<rbrakk>
-       \<Longrightarrow> A \<subseteq> \<Union>(compose {j. j \<le> n} f (skip i) ` {j. j \<le> n})"
-apply (simp add:compose_def)
- apply (rule subsetI, simp)
- apply (frule_tac c = x and A = A and B = "\<Union>x\<in>{j. j \<le> Suc n}. f x" in
-        subsetD, assumption+, simp)
- apply (erule exE, (erule conjE)+)
- apply (case_tac "xa = i", simp,
-        frule_tac c = x in subsetD[of "f i" "f j"], assumption+)
- apply (cut_tac less_linear[of i j], simp, erule disjE,
-        frule less_le_diff[of i j],
-        cut_tac skip_im_Tr2_1[of i n "j - Suc 0"],
-        simp, 
-        frule eq_elems_eq_val[THEN sym, of "skip i (j - Suc 0)" j f],
-        cut_tac a = x in eq_set_inc[of _ "f j" "f (skip i (j - Suc 0))"],
-              assumption+,
-        frule le_Suc_diff_le[of j n], blast, simp, assumption, simp)
- apply (frule  skip_im_Tr1_2[of i n j], assumption,
-        frule eq_elems_eq_val[THEN sym, of "skip i j" j f])
- apply (cut_tac a = x in eq_set_inc[of _ "f j" "f (skip i j)"],
-              assumption+)
- apply (frule_tac x = j and y = i and z = "Suc n" in less_le_trans,
-        assumption+,
-        frule Suc_less_le[of j n], blast)
- apply (cut_tac x = xa and y = i in less_linear, simp,
-        erule disjE,
-        frule_tac x = xa in skip_im_Tr1_2[of i n], assumption)
- apply (frule_tac x1 = "skip i xa" and y1 = xa and f1 = f in 
-                  eq_elems_eq_val[THEN sym],
-        frule_tac a = x and A = "f xa" and B = "f (skip i xa)" in eq_set_inc,
-        assumption,
-        frule_tac x = xa and y = i and z = "Suc n" in less_le_trans,
-        assumption+,
-        frule_tac x = xa and n = n in Suc_less_le, blast)
- apply (frule_tac x = i and n = xa in less_le_diff,
-        cut_tac x = "xa - Suc 0" and n = n in skip_im_Tr2_1 [of i],
-        simp, assumption,
-        simp,
-        frule_tac x1 = "skip i (xa - Suc 0)" and y1 = xa and f1 = f in 
-                  eq_elems_eq_val[THEN sym],
-        frule_tac a = x and A = "f xa" and B = "f (skip i (xa - Suc 0))" in 
-        eq_set_inc, assumption,
-        frule_tac x = xa and n = n in le_Suc_diff_le)
-        apply blast
-done
+lemma Un_less_Un:
+  assumes "f \<in> {k. k \<le> (Suc n)} \<rightarrow> (X::'a set set)" and "A \<subseteq> \<Union>(f ` {k. k \<le> (Suc n)})" and 
+"i \<in> {k. k \<le> (Suc n)}" and "j \<in> {k. k \<le> (Suc n)}" and "i \<noteq> j \<and> f i \<subseteq> f j"
+  shows "A \<subseteq> \<Union>(compose {k. k \<le> n} f (skip i) ` {k. k \<le> n})"
+proof
+  fix x
+  assume "x \<in> A"
+  show "x \<in> \<Union> (compose {k. k \<le> n} f (skip i) ` {k. k \<le> n})"
+  proof-
+    have f1:"x \<in> \<Union>(f ` {k. k \<le> Suc n})"
+      using assms(2) \<open>x \<in> A\<close> by auto
+    obtain k where "x \<in> f(k)" and "k \<le> Suc n"
+      using f1 by auto
+    then have f2:"i < j \<or> j < i"
+      using assms(5) less_linear[of i j] by simp
+    hence f3:"x \<in> f(skip i (j - 1))" if "k = i" and "i < j"
+      using that skip_im_Tr2_1[of i n "j - 1"] assms(5)
+      by (metis One_nat_def Suc_pred \<open>x \<in> f k\<close> assms(3) less_le_diff nat_pos2 subsetCE)
+    have f4:"x \<in> f(skip i j)" if "k = i" and "j < i"
+      using that skip_id[of j i] assms(5) \<open>x \<in> f k\<close> by auto
+    hence "k = i \<Longrightarrow>  x \<in> \<Union> (compose {k. k \<le> n} f (skip i) ` {k. k \<le> n})"
+      using f2 f3 f4 compose_def[of "{k. k \<le> n}" f "skip i"] image_def assms(3) assms(4)
+      by (smt One_nat_def le_SucE le_Suc_mem_Nsetn mem_Collect_eq mem_simps(9) not_less restrict_apply)
+    have f5:"k < i \<or> i < k" if "k \<noteq> i"
+      using that less_linear[of k i] by simp
+    hence f6:"x \<in> f(skip i k)" if "k \<noteq> i" and " k < i"
+      using that skip_id[of k i] by (simp add: \<open>x \<in> f k\<close>)
+    have f7:"x \<in> f(skip i (k - 1))" if "k \<noteq> i" and "i < k"
+      using that skip_im_Tr2_1[of i n "k - 1"] One_nat_def Suc_pred \<open>x \<in> f k\<close> assms(3) less_le_diff nat_pos2 by presburger
+    hence "k \<noteq> i \<Longrightarrow>  x \<in> \<Union> (compose {k. k \<le> n} f (skip i) ` {k. k \<le> n})"
+      using f5 f6 f7 compose_def[of "{k. k \<le> n}" f "skip i"]
+      by (metis (no_types, lifting) One_nat_def UN_I \<open>k \<le> Suc n\<close> assms(3) image_restrict_eq le_SucE le_Suc_mem_Nsetn mem_Collect_eq not_less)
+    thus "x \<in> \<Union> (compose {k. k \<le> n} f (skip i) ` {k. k \<le> n})" sledgehammer
+      using \<open>k = i \<Longrightarrow> x \<in> UNION {k. k \<le> n} (compose {k. k \<le> n} f (skip i))\<close> by auto
+  qed
+qed
 
 section "Lower bounded set of integers"
 
-(* In this section. I prove that a lower bounded set of integers
-  has the minimal element *)
+(* In this section we prove that a lower bounded set of integers
+  has a minimal element *)
 
 definition "Zset = {x. \<exists>(n::int). x = n}"
 
@@ -1988,69 +1986,60 @@ definition
   LB :: "[int set, int] \<Rightarrow> bool" where
   "LB A n = (\<forall>a\<in>A. n \<le> a)"
 
-lemma linorder_linear1:"(m::int) < n \<or> n \<le> m"
-apply (subgoal_tac "m < n \<or> n = m \<or> n < m")
-apply (case_tac "m < n") apply simp apply simp
-apply (subgoal_tac "m < n \<or> m = n \<or> n < m") 
-apply blast
-apply (simp add:less_linear)
-done
+lemma linorder_linear1:
+  shows "(m::int) < n \<or> n \<le> m"
+  by auto
 
 primrec dec_seq :: "[int set, int, nat] \<Rightarrow> int"
 where
   dec_seq_0: "dec_seq A a 0 = a"
 | dec_seq_Suc: "dec_seq A a (Suc n) = (SOME b. ((b \<in> A) \<and> b < (dec_seq A a n)))"
 
-lemma dec_seq_mem:"\<lbrakk>a \<in> A; A \<subseteq> Zset;\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x))\<rbrakk> \<Longrightarrow>
-                        (dec_seq A a n) \<in> A"
-apply (induct_tac n)
- apply simp apply simp  apply (simp add:not_zle)
-apply (subgoal_tac "\<exists>x\<in>A. x < (dec_seq A a n)") prefer 2 apply blast
- apply (thin_tac "\<forall>m. m \<in> A \<longrightarrow> (\<exists>x\<in>A. x < m)")
- apply (rule someI2_ex) apply blast
-apply simp
-done
+lemma dec_seq_mem:
+  assumes "a \<in> A" and "A \<subseteq> Zset" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x))" 
+  shows "(dec_seq A a n) \<in> A"
+proof(induct n)
+  case 0
+  then show "dec_seq A a 0 \<in> A"
+    using assms(1) dec_seq_0[of A a] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "dec_seq A a (Suc n) \<in> A"
+    using assms(2) dec_seq_Suc[of A a n]
+    by (metis (no_types, lifting) assms(3) linorder_linear1 someI_ex)
+qed
 
-lemma dec_seqn:"\<lbrakk>a \<in> A; A \<subseteq> Zset;\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x))\<rbrakk> \<Longrightarrow>
-                       (dec_seq A a (Suc n)) < (dec_seq A a n)"
-apply simp
- apply (frule dec_seq_mem [of "a" "A" "n"], assumption+)
- apply simp
- apply (simp add:not_zle)
- apply (subgoal_tac "\<exists>x\<in>A. x < (dec_seq A a n)") prefer 2 apply simp
- apply (thin_tac "\<forall>m. m \<in> A \<longrightarrow> (\<exists>x\<in>A. x < m)")
-apply (rule someI2_ex) apply blast
- apply simp
-done
+lemma dec_seqn:
+  assumes "a \<in> A" and "A \<subseteq> Zset" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x))" 
+  shows "(dec_seq A a (Suc n)) < (dec_seq A a n)"
+  using assms dec_seq_mem dec_seq_Suc[of A a n]
+  by (metis (no_types, lifting) linorder_linear1 someI_ex)
 
-lemma dec_seqn1:"\<lbrakk>a \<in> A; A \<subseteq> Zset;\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x))\<rbrakk> \<Longrightarrow>
-                       (dec_seq A a (Suc n)) \<le> (dec_seq A a n) - 1"
-apply (frule dec_seqn [of "a" "A" "n"], assumption+)
- apply simp
-done
+lemma dec_seqn1:
+  assumes "a \<in> A" and "A \<subseteq> Zset" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x))" 
+  shows "(dec_seq A a (Suc n)) \<le> (dec_seq A a n) - 1"
+  using assms dec_seqn[of a A n] by simp
 
-lemma lbs_ex_ZleastTr:"\<lbrakk>a \<in> A; A \<subseteq> Zset;\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x))\<rbrakk> \<Longrightarrow>
-                        (dec_seq A a n) \<le> (a - int(n))"
-apply (induct_tac n)
- apply simp
-apply (frule_tac n = n in dec_seqn1[of "a" "A"], assumption+)
- apply (subgoal_tac "dec_seq A a n - 1 \<le> a - (int n) - 1") prefer 2 
-   apply simp apply (thin_tac "dec_seq A a n \<le> a - int n")
- apply (frule_tac x = "dec_seq A a (Suc n)" and y = "dec_seq A a n - 1" and
- z = "a - int n - 1" in order_trans, assumption+)
- apply (thin_tac "\<not> (\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x))")
- apply (thin_tac "dec_seq A a (Suc n) \<le> dec_seq A a n - 1")
- apply (thin_tac "dec_seq A a n - 1 \<le> a - int n - 1")
-apply (subgoal_tac "a - int n - 1 = a - int (Suc n)") apply simp
- apply (thin_tac "dec_seq A a (Suc n) \<le> a - int n - 1")
-apply simp
-done
+lemma lbs_ex_ZleastTr:
+  assumes "a \<in> A" and "A \<subseteq> Zset" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x))" 
+  shows "(dec_seq A a n) \<le> (a - int(n))"
+proof(induct n)
+  case 0
+  then show "dec_seq A a 0 \<le> a - int 0"
+    using assms(1) dec_seq_0[of A a] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "dec_seq A a (Suc n) \<le> a - int (Suc n)"
+    using assms dec_seqn1[of a A n] by simp
+qed
 
-lemma big_int_less:"a - int(nat(abs(a) + abs(N) + 1)) < N"
-apply (simp add:zabs_def)
-done
+lemma big_int_less:
+  shows "a - int(nat(abs(a) + abs(N) + 1)) < N"
+  by simp
 
-lemma lbs_ex_Zleast:"\<lbrakk>A \<noteq> {}; A \<subseteq> Zset; LB A n\<rbrakk> \<Longrightarrow> \<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x)"
+lemma lbs_ex_Zleast:
+  assumes "A \<noteq> {}" and "A \<subseteq> Zset" and "LB A n" 
+  shows "\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x)"
 apply (frule nonempty_ex[of "A"])
  apply (thin_tac "A \<noteq> {}")
  apply (erule exE)
