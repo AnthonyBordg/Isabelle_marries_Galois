@@ -2040,32 +2040,34 @@ lemma big_int_less:
 lemma lbs_ex_Zleast:
   assumes "A \<noteq> {}" and "A \<subseteq> Zset" and "LB A n" 
   shows "\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x)"
-apply (frule nonempty_ex[of "A"])
- apply (thin_tac "A \<noteq> {}")
- apply (erule exE)
- apply (rename_tac a)
-apply (rule ex_ex1I)
-prefer 2
- apply (thin_tac "LB A n") apply (erule conjE)+
- apply (subgoal_tac "m \<le> y") prefer 2 apply simp
- apply (subgoal_tac "y \<le> m") prefer 2 apply simp
- apply (thin_tac "\<forall>x\<in>A. m \<le> x") apply (thin_tac "\<forall>x\<in>A. y \<le> x")
- apply simp
-apply (rule contrapos_pp) apply simp 
- apply (frule_tac a = a and A = A and n = "nat(abs(a) + abs(n) + 1)" in lbs_ex_ZleastTr, assumption+)
- apply (subgoal_tac "a - int(nat(abs(a) + abs(n) + 1)) < n")
- prefer 2 apply (rule big_int_less)
- apply (frule_tac x = "dec_seq A a (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1))" and y = "a - int (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1))" and z = n in order_le_less_trans, assumption+)
- apply (frule_tac a = a and n = "nat (\<bar>a\<bar> + \<bar>n\<bar> + 1)" in dec_seq_mem [of _ "A"], assumption+)
- apply (thin_tac "\<not> (\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x))")
- apply (thin_tac "dec_seq A a (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1))
-           \<le> a - int (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1))")
- apply (thin_tac "a - int (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1)) < n")
-apply (simp add:LB_def)
- apply (subgoal_tac "n \<le> dec_seq A a (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1))")
- apply (thin_tac "\<forall>a\<in>A. n \<le> a") apply (simp add:not_zle)
- apply blast
-done 
+proof-
+  have "\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x)"
+  proof(rule contrapos_pp[of "True"])
+    show "True" by auto
+    show "\<nexists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x) \<Longrightarrow> \<not> True"
+      proof
+        obtain a where "a \<in> A"
+          using assms(1) by auto
+        assume "\<nexists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)"
+        then have "dec_seq A a (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1)) \<le> a - int (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1))"
+          using lbs_ex_ZleastTr[of a A "nat (\<bar>a\<bar> + \<bar>n\<bar> + 1)"] assms(2) \<open>a \<in> A\<close> by auto
+        hence f1:"dec_seq A a (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1)) < n"
+          using big_int_less[of a n] by simp
+        have "dec_seq A a (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1)) \<in> A"
+          using dec_seq_mem[of a A "nat (\<bar>a\<bar> + \<bar>n\<bar> + 1)"] \<open>\<nexists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)\<close> \<open>a \<in> A\<close> assms(2) by simp
+        hence f2:"dec_seq A a (nat (\<bar>a\<bar> + \<bar>n\<bar> + 1)) \<ge> n"
+          using assms(3) LB_def by simp
+        thus "False"
+          using f1 f2 by auto
+      qed
+  qed
+  obtain m where "m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)"
+    using \<open>\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)\<close> by auto
+  then have "\<forall>n. n \<in> A \<and> (\<forall>x\<in>A. n \<le> x) \<Longrightarrow> n = m" 
+    using not_one_le_zero by blast
+  thus "\<exists>!m. m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)"
+    using \<open>m \<in> A \<and> (\<forall>x\<in>A. m \<le> x)\<close> eq_iff by blast
+qed
 
 lemma Zleast:"\<lbrakk>A \<noteq> {}; A \<subseteq> Zset; LB A n\<rbrakk> \<Longrightarrow> Zleast A \<in> A \<and>
                (\<forall>x\<in>A. (Zleast A) \<le> x)"
@@ -2074,14 +2076,17 @@ apply (frule lbs_ex_Zleast [of "A" "n"], assumption+)
  apply (rule theI')
  apply simp
 done
+(* Same problem encountered with Nleast *)
 
-lemma less_convert1:"\<lbrakk> a = c; a < b \<rbrakk> \<Longrightarrow> c < b"
-apply auto
-done 
+lemma less_convert1:
+  assumes "a = c" and "a < b" 
+  shows "c < b"
+  using assms by simp 
 
-lemma less_convert2:"\<lbrakk>a = b; b < c\<rbrakk> \<Longrightarrow> a < c"
-apply auto
-done 
+lemma less_convert2:
+  assumes "a = b" and "b < c" 
+  shows "a < c"
+  using assms by auto 
 
 section {* Augmented integer: integer and @{text "\<infinity>-\<infinity>"} *}
 
@@ -2116,7 +2121,7 @@ qed
 
 definition
   ant :: "int \<Rightarrow> ant" where
-  "ant m = Abs_Ainteg( (m, 0))"
+  "ant m = Abs_Ainteg((m, 0))"
 
 definition
   tna :: "ant \<Rightarrow> int" where
@@ -2185,240 +2190,136 @@ definition
    LBset :: "ant \<Rightarrow> ant set" where
   "LBset z = {(x::ant). z \<le> x}"  
 
-lemma ant_z_in_Ainteg:"(z::int, 0) \<in> Ainteg"
-apply (simp add:Ainteg_def zag_def)
-done
+lemma ant_z_in_Ainteg:
+  shows "(z::int, 0) \<in> Ainteg"
+  using Ainteg_def zag_def by auto
 
-lemma ant_inf_in_Ainteg:"((0::int), 1) \<in> Ainteg"
-apply (simp add:Ainteg_def zag_def)
-done
+lemma ant_inf_in_Ainteg:
+  shows "((0::int), 1) \<in> Ainteg"
+  using Ainteg_def zag_def by auto
 
-lemma ant_minf_in_Ainteg:"((0::int), -1) \<in> Ainteg"
-apply (simp add:Ainteg_def zag_def)
-done
+lemma ant_minf_in_Ainteg:
+  shows "((0::int), -1) \<in> Ainteg"
+  using Ainteg_def zag_def by auto
 
-lemma ant_0_in_Ainteg:"((0::int), 0) \<in> Ainteg"
-apply (simp add:Ainteg_def zag_def)
-done
+lemma ant_0_in_Ainteg:
+  shows "((0::int), 0) \<in> Ainteg"
+  using Ainteg_def zag_def by auto
 
-lemma an_0[simp]:"an 0 = 0"
-by (simp add:an_def Zero_ant_def)
+lemma an_0[simp]:
+  shows "an 0 = 0"
+  using an_def Zero_ant_def by simp
 
-lemma an_1[simp]:"an 1 = 1"
-by (simp add:an_def One_ant_def)
+lemma an_1[simp]:
+  shows "an 1 = 1"
+  using an_def One_ant_def by simp
 
-lemma mem_ant:"(a::ant) = -\<infinity> \<or> (\<exists>(z::int). a = ant z) \<or> a = \<infinity>"
-apply (case_tac "a = -\<infinity> \<or> a = \<infinity>") 
- apply blast
-apply (simp, simp add:ant_def,
-       cut_tac Rep_Ainteg[of "a"],
-       simp add:Ainteg_def zag_def,
-       erule conjE, simp add:inf_ant_def,
-       simp add:minus_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply auto
-apply (cut_tac Rep_Ainteg[of "a"],
-       subgoal_tac "Abs_Ainteg (Rep_Ainteg a) = Abs_Ainteg ((0,-1))",
-       thin_tac "Rep_Ainteg a = (0, -1)",
-       simp add:Rep_Ainteg_inverse, simp)
-apply (cut_tac Rep_Ainteg[of "a"],
-       subgoal_tac "Abs_Ainteg (Rep_Ainteg a) = Abs_Ainteg ((0,0))",
-       thin_tac "Rep_Ainteg a = (0, 0)",
-       simp add:Rep_Ainteg_inverse, blast, simp)
-apply (cut_tac Rep_Ainteg[of "a"],
-       subgoal_tac "Abs_Ainteg (Rep_Ainteg a) = Abs_Ainteg ((0,1))",
-       thin_tac "Rep_Ainteg a = (0, 1)",
-       simp add:Rep_Ainteg_inverse, simp)
-apply (cut_tac Rep_Ainteg[of "a"],
-       subgoal_tac "Abs_Ainteg (Rep_Ainteg a) = Abs_Ainteg ((x,0))",
-       thin_tac "Rep_Ainteg a = (x, 0)",
-       simp add:Rep_Ainteg_inverse, blast, simp)
-done
+lemma mem_ant:"(a::ant) = -\<infinity> \<or> (\<exists>(z::int). a = ant z) \<or> a = \<infinity>" 
+  using ant_def inf_ant_def minus_ant_def[of \<infinity>]  Ainteg_def zag_def
+  by (smt Abs_Ainteg_inverse Rep_Ainteg Rep_Ainteg_inject mem_Collect_eq mult_eq_0_iff prod.sel(1) prod.sel(2))
 
-lemma minf:"-\<infinity> = Abs_Ainteg((0,-1))"
-apply (simp add:inf_ant_def minus_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-done
+lemma minf:
+  shows "-\<infinity> = Abs_Ainteg((0,-1))"
+  using inf_ant_def minus_ant_def[of \<infinity>] Abs_Ainteg_inverse ant_inf_in_Ainteg by fastforce
 
-lemma z_neq_inf[simp]:"(ant z) \<noteq> \<infinity> "
-apply (rule contrapos_pp, simp+)
-apply (simp add:ant_def inf_ant_def)
-apply (subgoal_tac "Rep_Ainteg (Abs_Ainteg (z,0)) = 
-                      Rep_Ainteg (Abs_Ainteg (0,1))",
-       thin_tac "Abs_Ainteg (z, 0) = Abs_Ainteg (0, 1)",
-       cut_tac ant_z_in_Ainteg[of "z"],
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply simp
-done
+lemma z_neq_inf[simp]:
+  shows "(ant z) \<noteq> \<infinity> "
+  using ant_def inf_ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inject ant_inf_in_Ainteg ant_z_in_Ainteg)
 
-lemma z_neq_minf[simp]:"(ant z) \<noteq> -\<infinity>"
-apply (rule contrapos_pp, simp+)
-apply (subgoal_tac "ant (-z) = \<infinity>")
-apply (cut_tac z_neq_inf[of "- z"], simp)
-apply (simp add:ant_def inf_ant_def minus_ant_def)
-apply (cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply (subgoal_tac "- Abs_Ainteg (z, 0) = - Abs_Ainteg (0, -1)",
-       thin_tac "Abs_Ainteg (z, 0) = Abs_Ainteg (0, -1)",
-       simp add:minus_ant_def,
-       cut_tac ant_z_in_Ainteg[of "z"],
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply simp
-done
+lemma z_neq_minf[simp]:
+  shows "(ant z) \<noteq> -\<infinity>"
+  using ant_def inf_ant_def minus_ant_def[of \<infinity>]
+  by (smt Abs_Ainteg_inverse Algebra1.minf Pair_inject ant_minf_in_Ainteg ant_z_in_Ainteg)
 
-lemma minf_neq_inf[simp]:"-\<infinity> \<noteq> \<infinity>"
-apply (cut_tac ant_inf_in_Ainteg,
-       simp add:inf_ant_def minus_ant_def Abs_Ainteg_inverse)
-apply (rule contrapos_pp, simp+,
-       subgoal_tac "Rep_Ainteg (Abs_Ainteg (0,-1)) = 
-                     Rep_Ainteg (Abs_Ainteg (0,1))",
-       thin_tac "Abs_Ainteg (0, -1) = Abs_Ainteg (0, 1)",
-       cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply simp
-done
+lemma minf_neq_inf[simp]:
+  shows "-\<infinity> \<noteq> \<infinity>"
+  using inf_ant_def minus_ant_def[of \<infinity>] Abs_Ainteg_inject Algebra1.minf ant_inf_in_Ainteg ant_minf_in_Ainteg by fastforce
 
+lemma a_ipi[simp]:
+  shows "\<infinity> + \<infinity> = \<infinity>"
+  using inf_ant_def add_ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg zag_pl_def)
 
-lemma a_ipi[simp]:"\<infinity> + \<infinity> = \<infinity>"
-apply (simp add:add_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse,
-       simp add:zag_pl_def)
-done
+lemma a_zpi[simp]:
+  shows "(ant z) + \<infinity>  = \<infinity>"
+  using ant_def inf_ant_def add_ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg ant_z_in_Ainteg zag_pl_def)
 
-lemma a_zpi[simp]:"(ant z) + \<infinity>  = \<infinity>"
-apply (simp add:add_ant_def inf_ant_def ant_def,
-       cut_tac ant_z_in_Ainteg[of "z"],
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse,
-       simp add:zag_pl_def)
-done
+lemma a_ipz[simp]:
+  shows " \<infinity> + (ant z) = \<infinity>"
+  using ant_def inf_ant_def add_ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg ant_z_in_Ainteg zag_pl_def)
 
-lemma a_ipz[simp]:" \<infinity> + (ant z) = \<infinity>"
-apply (simp add:add_ant_def inf_ant_def ant_def,
-       cut_tac ant_z_in_Ainteg[of "z"],
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse,
-       simp add:zag_pl_def)
-done
+lemma a_zpz:
+  shows "(ant m) + (ant n) = ant (m + n)"
+  using ant_def add_ant_def
+  by (simp add: Abs_Ainteg_inverse ant_z_in_Ainteg zag_pl_def)
 
-lemma a_zpz:"(ant m) + (ant n) = ant (m + n)"
-apply (simp add:add_ant_def inf_ant_def ant_def,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       cut_tac ant_z_in_Ainteg[of "n"],
-       simp add:Abs_Ainteg_inverse,
-       simp add:zag_pl_def)
-done
+lemma a_mpi[simp]:
+  shows "-\<infinity> + \<infinity>  = 0"
+  using inf_ant_def minus_ant_def[of \<infinity>] add_ant_def Zero_ant_def ant_def
+  by (smt Abs_Ainteg_inverse ant_inf_in_Ainteg ant_minf_in_Ainteg fst_conv snd_conv zag_pl_def)
 
-lemma a_mpi[simp]:"-\<infinity> + \<infinity>  = 0"
-apply (simp add:add_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:minus_ant_def,
-       simp add:Abs_Ainteg_inverse,
-       simp add:Zero_ant_def ant_def zag_pl_def)
-done
+lemma a_ipm[simp]:
+  shows "\<infinity> + (-\<infinity>) = 0"
+  using inf_ant_def minus_ant_def[of \<infinity>] add_ant_def Zero_ant_def ant_def
+  by (smt Abs_Ainteg_inverse ant_inf_in_Ainteg ant_minf_in_Ainteg fst_conv snd_conv zag_pl_def)
 
-lemma a_ipm[simp]:"\<infinity> + (-\<infinity>) = 0"
-apply (simp add:add_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:minus_ant_def,
-       simp add:Abs_Ainteg_inverse,
-       simp add:Zero_ant_def ant_def zag_pl_def)
-done
+lemma a_mpm[simp]:
+  shows "-\<infinity> + (-\<infinity>) = -\<infinity>"
+  using inf_ant_def minus_ant_def[of \<infinity>] add_ant_def Abs_Ainteg_inverse Algebra1.minf ant_minf_in_Ainteg zag_pl_def by fastforce
 
-lemma a_mpm[simp]:"-\<infinity> + (-\<infinity>) = -\<infinity>"
-apply (simp add:add_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:minus_ant_def,
-       simp add:Abs_Ainteg_inverse,
-       simp add:Zero_ant_def ant_def zag_pl_def)
-done
+lemma a_mpz[simp]:
+  shows "-\<infinity> + (ant m) = -\<infinity>"
+  using inf_ant_def minus_ant_def[of \<infinity>] add_ant_def ant_def Abs_Ainteg_inverse Algebra1.minf ant_minf_in_Ainteg ant_z_in_Ainteg zag_pl_def by fastforce
 
-lemma a_mpz[simp]:"-\<infinity> + (ant m) = -\<infinity>"
-apply (simp add:add_ant_def minus_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse,
-       simp add:ant_def,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       simp add:Abs_Ainteg_inverse) 
-apply (simp add:zag_pl_def)
-done
+lemma a_zpm[simp]:
+  shows "(ant m) + (-\<infinity>) = -\<infinity>"
+  using inf_ant_def minus_ant_def[of \<infinity>] add_ant_def ant_def Abs_Ainteg_inverse Algebra1.minf ant_minf_in_Ainteg ant_z_in_Ainteg zag_pl_def by fastforce
 
-lemma a_zpm[simp]:"(ant m) + (-\<infinity>) = -\<infinity>"
-apply (simp add:add_ant_def minus_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse,
-       simp add:ant_def,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       simp add:Abs_Ainteg_inverse) 
-apply (simp add:zag_pl_def)
-done
+lemma a_mdi[simp]:
+  shows "-\<infinity> - \<infinity>  = - \<infinity>"
+  using diff_ant_def minus_ant_def inf_ant_def a_mpm by simp
 
-lemma a_mdi[simp]:"-\<infinity> - \<infinity>  = - \<infinity>"
-apply (simp add:diff_ant_def minus_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:add_ant_def,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse, simp add:zag_pl_def)
-done
+lemma a_zdz:
+  shows "(ant m) - (ant n) = ant (m - n)"
+  using diff_ant_def minus_ant_def ant_def Abs_Ainteg_inverse a_zpz ant_z_in_Ainteg by auto
 
-lemma a_zdz:"(ant m) - (ant n) = ant (m - n)"
-apply (simp add:diff_ant_def minus_ant_def ant_def,
-       cut_tac ant_z_in_Ainteg[of "n"],
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:add_ant_def,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       cut_tac ant_z_in_Ainteg[of "-n"],
-       simp add:Abs_Ainteg_inverse zag_pl_def)
-done
+lemma a_i_i[simp]:
+  shows "\<infinity> * \<infinity> = \<infinity>"
+  using mult_ant_def inf_ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg zag_t_def)
 
-lemma a_i_i[simp]:"\<infinity> * \<infinity> = \<infinity>"
-apply (simp add:mult_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def) 
-done
+lemma a_0_i[simp]:
+  shows "0 * \<infinity> = 0"
+  using mult_ant_def inf_ant_def Zero_ant_def ant_def
+  by (simp add: Zero_ant_def Abs_Ainteg_inverse ant_0_in_Ainteg zag_t_def)
 
-lemma a_0_i[simp]:"0 * \<infinity> = 0"
-by (simp add:mult_ant_def inf_ant_def Zero_ant_def, simp add:ant_def,
-    cut_tac ant_inf_in_Ainteg, cut_tac ant_0_in_Ainteg,
-       simp add:Abs_Ainteg_inverse, simp add:zag_t_def) 
+lemma a_i_0[simp]:
+  shows "\<infinity> * 0 = 0"
+  using mult_ant_def inf_ant_def Zero_ant_def ant_def
+  by (simp add: Zero_ant_def Abs_Ainteg_inverse ant_0_in_Ainteg zag_t_def)
 
-lemma a_i_0[simp]:"\<infinity> * 0 = 0"
-by (simp add:mult_ant_def inf_ant_def Zero_ant_def, simp add:ant_def,
-    cut_tac ant_inf_in_Ainteg, cut_tac ant_0_in_Ainteg,
-       simp add:Abs_Ainteg_inverse, simp add:zag_t_def) 
+lemma a_0_m[simp]:
+  shows "0 * (-\<infinity>) = 0"
+  using mult_ant_def inf_ant_def Zero_ant_def ant_def
+  by (simp add: Zero_ant_def Abs_Ainteg_inverse ant_0_in_Ainteg zag_t_def)
 
-lemma a_0_m[simp]:"0 * (-\<infinity>) = 0"
-by (simp add:mult_ant_def inf_ant_def Zero_ant_def, simp add:ant_def,
-    cut_tac ant_inf_in_Ainteg, cut_tac ant_0_in_Ainteg, 
-       simp add:Abs_Ainteg_inverse, simp add:zag_t_def) 
+lemma a_m_0[simp]:
+  shows "(-\<infinity>) * 0 = 0"
+  using mult_ant_def inf_ant_def Zero_ant_def ant_def
+  by (simp add: Zero_ant_def Abs_Ainteg_inverse ant_0_in_Ainteg zag_t_def) 
 
-lemma a_m_0[simp]:"(-\<infinity>) * 0 = 0"
-by (simp add:mult_ant_def inf_ant_def Zero_ant_def, simp add:ant_def,
-    cut_tac ant_inf_in_Ainteg, cut_tac ant_0_in_Ainteg, 
-       simp add:Abs_Ainteg_inverse, simp add:zag_t_def) 
+lemma a_m_i[simp]:
+  shows "(-\<infinity>) * \<infinity> = -\<infinity>"
+  using mult_ant_def inf_ant_def minus_ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg ant_minf_in_Ainteg zag_t_def)
 
-lemma a_m_i[simp]:"(-\<infinity>) * \<infinity> = -\<infinity>"
-by (simp add:mult_ant_def inf_ant_def minus_ant_def,
-       cut_tac ant_inf_in_Ainteg, cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse, simp add:zag_t_def) 
-
-lemma a_i_m[simp]:"\<infinity> * (-\<infinity>) = - \<infinity>"
-by (simp add:mult_ant_def inf_ant_def minus_ant_def,
-       cut_tac ant_inf_in_Ainteg, cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse, simp add:zag_t_def) 
+lemma a_i_m[simp]:
+  shows "\<infinity> * (-\<infinity>) = - \<infinity>"
+  using mult_ant_def inf_ant_def minus_ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg ant_minf_in_Ainteg zag_t_def)
 
 lemma a_pos_i[simp]:"0 < m \<Longrightarrow> (ant m) * \<infinity> = \<infinity>"
 apply (simp add:mult_ant_def inf_ant_def ant_def, 
