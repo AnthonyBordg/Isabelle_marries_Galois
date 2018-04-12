@@ -2321,221 +2321,143 @@ lemma a_i_m[simp]:
   using mult_ant_def inf_ant_def minus_ant_def
   by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg ant_minf_in_Ainteg zag_t_def)
 
-lemma a_pos_i[simp]:"0 < m \<Longrightarrow> (ant m) * \<infinity> = \<infinity>"
-apply (simp add:mult_ant_def inf_ant_def ant_def, 
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma a_pos_i[simp]:
+  assumes "0 < m" 
+  shows "(ant m) * \<infinity> = \<infinity>"
+  using assms mult_ant_def inf_ant_def ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg ant_z_in_Ainteg zag_t_def)
 
-lemma a_i_pos[simp]:"0 < m \<Longrightarrow> \<infinity> * (ant m) = \<infinity>"
-apply (simp add:mult_ant_def inf_ant_def ant_def, 
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma a_i_pos[simp]:
+  assumes "0 < m" 
+  shows "\<infinity> * (ant m) = \<infinity>"
+  using assms mult_ant_def inf_ant_def ant_def
+  by (simp add: inf_ant_def Abs_Ainteg_inverse ant_inf_in_Ainteg ant_z_in_Ainteg zag_t_def)
 
-lemma a_neg_i[simp]:"m < 0 \<Longrightarrow> (ant m) * \<infinity> = -\<infinity>"
-apply (simp add:mult_ant_def inf_ant_def ant_def, 
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       simp add:minus_ant_def,
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma a_neg_i[simp]:
+  assumes "m < 0" 
+  shows "(ant m) * \<infinity> = -\<infinity>"
+  using assms mult_ant_def inf_ant_def ant_def minus_ant_def[of \<infinity>] Abs_Ainteg_inverse ant_inf_in_Ainteg 
+ant_z_in_Ainteg zag_t_def by fastforce
 
-lemma a_i_neg[simp]:"m < 0 \<Longrightarrow> \<infinity> * (ant m) = -\<infinity>"
-apply (simp add:mult_ant_def inf_ant_def ant_def, 
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       simp add:minus_ant_def,
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma a_i_neg[simp]:
+  assumes "m < 0" 
+  shows "\<infinity> * (ant m) = -\<infinity>"
+  using assms mult_ant_def inf_ant_def ant_def minus_ant_def[of \<infinity>] Abs_Ainteg_inverse ant_inf_in_Ainteg 
+ant_z_in_Ainteg zag_t_def by fastforce
 
+lemma a_z_z:
+  shows "(ant m) * (ant n) = ant (m * n)"
+  using mult_ant_def ant_def by (simp add: Abs_Ainteg_inverse ant_z_in_Ainteg zag_t_def)
 
-lemma a_z_z:"(ant m) * (ant n) = ant (m*n)"
-apply (simp add:mult_ant_def ant_def, 
-       cut_tac ant_z_in_Ainteg[of "m"],
-       cut_tac ant_z_in_Ainteg[of "n"],
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma a_pos_m[simp]:
+  assumes "0 < m" 
+  shows "(ant m) * (-\<infinity>) = -\<infinity>"
+  using assms mult_ant_def inf_ant_def minus_ant_def[of \<infinity>] ant_def Abs_Ainteg_inverse Algebra1.minf 
+ant_minf_in_Ainteg ant_z_in_Ainteg zag_t_def by fastforce
 
-lemma a_pos_m[simp]:"0 < m \<Longrightarrow> (ant m) * (-\<infinity>) = -\<infinity>"
-apply (simp add:mult_ant_def inf_ant_def minus_ant_def ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac ant_minf_in_Ainteg,
-      cut_tac ant_z_in_Ainteg[of "m"],
-      simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)  
-done
+lemma a_m_pos[simp]:
+  assumes "0 < m" 
+  shows "(-\<infinity>) * (ant m) = -\<infinity>"
+  using assms mult_ant_def inf_ant_def minus_ant_def[of \<infinity>] ant_def Abs_Ainteg_inverse Algebra1.minf 
+ant_minf_in_Ainteg ant_z_in_Ainteg zag_t_def by fastforce
 
-lemma a_m_pos[simp]:"0 < m \<Longrightarrow> (-\<infinity>) * (ant m) = -\<infinity>"
-apply (simp add:mult_ant_def inf_ant_def minus_ant_def ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac ant_minf_in_Ainteg,
-      cut_tac ant_z_in_Ainteg[of "m"],
-      simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma a_neg_m[simp]:
+  assumes "m < 0" 
+  shows "(ant m) * (-\<infinity>) = \<infinity>"
+  using assms mult_ant_def inf_ant_def minus_ant_def[of \<infinity>] ant_def Abs_Ainteg_inverse Algebra1.minf 
+ant_minf_in_Ainteg ant_z_in_Ainteg zag_t_def by fastforce
 
-lemma a_neg_m[simp]:"m < 0 \<Longrightarrow> (ant m) * (-\<infinity>) = \<infinity>"
-apply (simp add:mult_ant_def inf_ant_def minus_ant_def ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac ant_minf_in_Ainteg,
-      cut_tac ant_z_in_Ainteg[of "m"],
-      simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma neg_a_m[simp]:
+  assumes "m < 0" 
+  shows "(-\<infinity>) * (ant m) = \<infinity>"
+  using assms mult_ant_def inf_ant_def minus_ant_def[of \<infinity>] ant_def Abs_Ainteg_inverse Algebra1.minf 
+ant_minf_in_Ainteg ant_z_in_Ainteg zag_t_def by fastforce
 
-lemma neg_a_m[simp]:"m < 0 \<Longrightarrow> (-\<infinity>) * (ant m) = \<infinity>"
-apply (simp add:mult_ant_def inf_ant_def minus_ant_def ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac ant_minf_in_Ainteg,
-      cut_tac ant_z_in_Ainteg[of "m"],
-      simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma a_m_m[simp]:
+  shows "(-\<infinity>) * (-\<infinity>) = \<infinity>"
+  using mult_ant_def inf_ant_def minus_ant_def[of \<infinity>] ant_def Abs_Ainteg_inverse Algebra1.minf 
+ant_minf_in_Ainteg zag_t_def by fastforce
 
-lemma a_m_m[simp]:"(-\<infinity>) * (-\<infinity>) = \<infinity>"
-apply (simp add:mult_ant_def inf_ant_def minus_ant_def ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac ant_minf_in_Ainteg,
-      simp add:Abs_Ainteg_inverse)
-apply (simp add:zag_t_def)
-done
+lemma inj_on_Abs_Ainteg:
+  shows "inj_on Abs_Ainteg Ainteg"
+  using inj_on_def by (metis Abs_Ainteg_inverse)
 
+lemma an_Suc:
+  shows "an (Suc n) = an n + 1"
+  using an_def by (simp add: One_ant_def a_zpz add.commute)
 
-lemma inj_on_Abs_Ainteg:"inj_on Abs_Ainteg Ainteg"
-apply (simp add:inj_on_def)
-apply (rule ballI)+
-apply (rule impI,
-       subgoal_tac "Rep_Ainteg (Abs_Ainteg x) = Rep_Ainteg (Abs_Ainteg y)",
-       thin_tac "Abs_Ainteg x = Abs_Ainteg y",
-       simp add:Abs_Ainteg_inverse, simp)
-done
+lemma aeq_zeq [iff]: 
+  shows "(ant m = ant n) = (m = n)"
+  using ant_def
+  by (simp add: Abs_Ainteg_inject ant_z_in_Ainteg)
 
-lemma an_Suc:"an (Suc n) = an n + 1"
-    apply (subst an_1[THEN sym])
-    apply (simp del:an_1 add:an_def) 
-    apply (simp del:an_1 add:a_zpz, simp add:add.commute)
-done
+lemma aminus:
+  shows "- ant m = ant (-m)"
+  using ant_def minus_ant_def
+  by (simp add: Abs_Ainteg_inverse ant_z_in_Ainteg)
 
-lemma aeq_zeq [iff]: "(ant m = ant n) = (m = n)"
-apply (rule iffI)
-apply (subgoal_tac "Rep_Ainteg (ant m) = Rep_Ainteg (ant n)",
-       thin_tac "ant m = ant n",
-       cut_tac ant_z_in_Ainteg[of "m"],
-       cut_tac ant_z_in_Ainteg[of "n"],
-       simp add:ant_def Abs_Ainteg_inverse)
-apply simp+
-done
+lemma aminusZero:
+  shows "- ant 0 = ant 0"
+  by (simp add: aminus)
+(* aminusZero is a particular case of aminus, so it should be removed *)
 
-lemma aminus:"- ant m = ant (-m)"
-apply (simp add:ant_def minus_ant_def,
-       cut_tac ant_z_in_Ainteg[of "m"],
-       simp add:Abs_Ainteg_inverse)
-done
+lemma  ant_0: 
+  shows "ant 0 = (0::ant)"
+  by (simp add: Zero_ant_def)
 
-lemma aminusZero:"- ant 0 = ant 0"
-apply (simp add:aminus)
-done
+lemma inf_neq_0[simp]:
+  shows "\<infinity> \<noteq> 0"
+  using z_neq_inf[of 0] ant_0 by simp
 
-lemma  ant_0: "ant 0 = (0::ant)"
-by (simp add: Zero_ant_def)
+lemma zero_neq_inf[simp]:
+  shows "0 \<noteq> \<infinity>"
+  using inf_neq_0 by simp
+(* This last lemma is not particularly useful given inf_neq_0 *)
 
-lemma inf_neq_0[simp]:"\<infinity> \<noteq> 0"
-apply (cut_tac z_neq_inf[of "0"], frule not_sym)
-apply (simp add:ant_0)
-done
+lemma minf_neq_0[simp]:
+  shows "-\<infinity> \<noteq> 0"
+  using z_neq_minf[of 0] ant_0 by simp
 
-lemma zero_neq_inf[simp]:"0 \<noteq> \<infinity>"
-by (cut_tac inf_neq_0, frule not_sym, simp)
+lemma zero_neq_minf[simp]:
+  shows "0 \<noteq> -\<infinity>"
+  using minf_neq_0 by simp
+(* Again this last lemma is not useful given minf_neq_0 *)
 
-lemma minf_neq_0[simp]:"-\<infinity> \<noteq> 0"
-apply (cut_tac z_neq_minf[of "0"], frule not_sym)
-apply (simp add:ant_0)
-done
+lemma a_minus_zero[simp]:
+  shows "-(0::ant) = 0"
+  using aminusZero ant_0 by simp
 
-lemma zero_neq_minf[simp]:"0 \<noteq> -\<infinity>"
-by (cut_tac minf_neq_0, frule not_sym, simp)
+lemma a_minus_minus: 
+  shows "- (- z) = (z::ant)"
+  using minus_ant_def mem_ant[of z] minf ant_def Abs_Ainteg_inverse aminus ant_minf_in_Ainteg inf_ant_def by auto
 
-lemma a_minus_zero[simp]:"-(0::ant) = 0"
-by (cut_tac aminusZero, simp add:ant_0)
+lemma aminus_0: 
+  shows "- (- 0) = (0::ant)"
+  using a_minus_minus[of 0] by simp
+(* Again this last lemma should be removed *)
 
-lemma a_minus_minus: "- (- z) = (z::ant)"
-apply (cut_tac mem_ant[of "z"])
-apply (erule disjE, simp add:minf, simp add: minus_ant_def,
-       cut_tac ant_minf_in_Ainteg,
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply (erule disjE) apply (erule exE, simp add:aminus)
-apply (simp add:minf, simp add: minus_ant_def,
-       cut_tac ant_minf_in_Ainteg,
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse,
-       simp add:inf_ant_def)
-done
+lemma a_a_z_0:
+  assumes "0 < z" and "a * ant z = 0" 
+  shows "a = 0"
+  using assms mult_ant_def ant_def Zero_ant_def mem_ant[of a]
+  by (smt a_i_pos a_m_pos a_z_z aeq_zeq mult_eq_0_iff)
 
-lemma aminus_0: "- (- 0) = (0::ant)"
-apply (simp add:a_minus_minus)
-done
+lemma adiv_eq:
+  assumes "z \<noteq> 0" and "a * (ant z) = b * (ant z)" 
+  shows "a = b"
+  thm mem_ant a_z_z
+  using assms ant_def mult_ant_def Zero_ant_def mem_ant[of a] mem_ant[of b] a_z_z less_linear mult_cancel_right
+  by (smt a_i_neg a_i_pos a_m_pos aeq_zeq neg_a_m)
 
-lemma a_a_z_0:"\<lbrakk> 0 < z; a * ant z = 0\<rbrakk> \<Longrightarrow> a = 0"
-by (rule contrapos_pp, simp+, cut_tac mem_ant[of "a"], erule disjE, 
-       simp, erule disjE, erule exE, simp add:a_z_z, 
-       simp only:ant_0[THEN sym], simp, simp)
+lemma aminus_add_distrib: 
+  shows "- (z + w) = (- z) + (- w::ant)"
+  using ant_def add_ant_def minus_ant_def mem_ant[of z] mem_ant[of w] aminus a_minus_minus a_ipi 
+a_ipm a_ipz a_minus_zero a_mpi a_mpm a_mpz a_zpi a_zpm a_zpz by auto
 
-lemma adiv_eq:"\<lbrakk> z \<noteq> 0; a * (ant z) = b * (ant z)\<rbrakk> \<Longrightarrow> a = b"
-apply (cut_tac mem_ant[of "a"], cut_tac mem_ant[of "b"],
-      (erule disjE)+, simp, erule disjE, erule exE,
-       cut_tac less_linear[of "z" "0"], erule disjE, simp add:a_z_z,
-       frule sym, thin_tac "\<infinity> = ant (za * z)", simp,
-       simp add:a_z_z, frule sym, thin_tac "- \<infinity> = ant (za * z)", simp,
-       cut_tac less_linear[of "z" "0"], erule disjE, simp,
-       simp, erule disjE, erule exE)
-apply (erule disjE,
-        cut_tac less_linear[of "z" "0"], simp,
-        erule disjE, simp add:a_z_z, simp add:a_z_z,
-        erule disjE, erule exE, simp add:a_z_z,
-        cut_tac less_linear[of "z" "0"], simp,
-        erule disjE, simp add:a_z_z, simp add:a_z_z,
-        erule disjE,
-        cut_tac less_linear[of "z" "0"], simp,
-        erule disjE, simp+)
-apply (erule disjE, erule exE, simp add:a_z_z,
-        cut_tac less_linear[of "z" "0"], simp, erule disjE, simp,
-        frule sym, thin_tac "- \<infinity> = ant (za * z)", simp,
-        simp, frule sym, thin_tac "\<infinity> = ant (za * z)", simp,
-        cut_tac less_linear[of "z" "0"], simp) 
-done
-
-lemma aminus_add_distrib: "- (z + w) = (- z) + (- w::ant)"
-apply (cut_tac mem_ant[of "z"], cut_tac mem_ant[of "w"],
-       (erule disjE)+, simp add:a_minus_minus,
-       erule disjE, erule exE, simp,
-       simp add:a_minus_minus aminus, simp add:a_minus_minus) 
-apply ((erule disjE)+, erule exE, 
-       simp add:a_minus_minus, simp add:aminus,
-       simp add:a_minus_minus) 
-apply ((erule disjE)+, (erule exE)+, simp add:a_zpz aminus,
-      erule exE, simp add:aminus,
-      erule disjE, erule exE, simp add:aminus, simp)
-done
-
-lemma aadd_commute:"(x::ant) + y = y + x"
-apply (cut_tac mem_ant[of "x"], cut_tac mem_ant[of "y"])
-apply (erule disjE, erule disjE, simp,
-      erule disjE, erule exE, simp+,
-      (erule disjE)+, erule exE, simp+)
-apply ((erule disjE)+, (erule exE)+, simp add:a_zpz, 
-      erule exE, simp, erule disjE, erule exE, simp+)
-done
+lemma aadd_commute:
+  shows "(x::ant) + y = y + x"
+  using add_ant_def ant_def a_zpz mem_ant[of x] mem_ant[of y]
+  by (simp add: semiring_normalization_rules(24) zag_pl_def)
 
 definition
   aug_inf :: "ant set"  ("Z\<^sub>\<infinity>") where
@@ -2545,273 +2467,125 @@ definition
   aug_minf :: "ant set"  ("Z\<^sub>-\<^sub>\<infinity>") where
   "Z\<^sub>-\<^sub>\<infinity> = {(z::ant). z \<noteq> \<infinity> }"
 
-lemma z_in_aug_inf:"ant z \<in> Z\<^sub>\<infinity>"
-apply (simp add:aug_inf_def)
-done
+lemma z_in_aug_inf:
+  shows "ant z \<in> Z\<^sub>\<infinity>"
+  using z_neq_minf[of z] by (simp add: aug_inf_def)
 
-lemma Zero_in_aug_inf:"0 \<in> Z\<^sub>\<infinity>"
-by (simp only:Zero_ant_def, simp add: aug_inf_def)
+lemma Zero_in_aug_inf:
+  shows "0 \<in> Z\<^sub>\<infinity>"
+  using zero_neq_minf by (simp add: aug_inf_def) 
 
-lemma z_in_aug_minf:"ant z \<in> Z\<^sub>-\<^sub>\<infinity>"
-by (simp add:aug_minf_def)
+lemma z_in_aug_minf:
+  shows "ant z \<in> Z\<^sub>-\<^sub>\<infinity>"
+  by (simp add:aug_minf_def)
 
-lemma mem_aug_minf:"a \<in> Z\<^sub>-\<^sub>\<infinity> \<Longrightarrow> a = - \<infinity> \<or> (\<exists>z. a = ant z)" 
-by (cut_tac mem_ant[of a], simp add:aug_minf_def)
+lemma mem_aug_inf:
+  assumes "a \<in> Z\<^sub>\<infinity>"
+  shows "a = \<infinity> \<or> (\<exists>z. a = ant z)"
+  using assms mem_ant[of a] aug_inf_def by auto
 
-lemma minus_an_in_aug_minf:" - an n \<in>  Z\<^sub>-\<^sub>\<infinity>" 
-apply (simp add:an_def)
-apply (simp add:aminus)
-apply (simp add:z_in_aug_minf)
-done
+lemma mem_aug_minf:
+  assumes "a \<in> Z\<^sub>-\<^sub>\<infinity>" 
+  shows "a = - \<infinity> \<or> (\<exists>z. a = ant z)"
+  using assms mem_ant[of a] aug_minf_def by auto
 
-lemma Zero_in_aug_minf:"0 \<in> Z\<^sub>-\<^sub>\<infinity>"
-by (simp add:Zero_ant_def aug_minf_def)
+lemma minus_an_in_aug_minf:
+  shows "- an n \<in>  Z\<^sub>-\<^sub>\<infinity>"
+  using an_def z_in_aug_minf by (simp add: aminus)
 
-lemma aadd_assoc_i: "\<lbrakk>x \<in> Z\<^sub>\<infinity>; y \<in> Z\<^sub>\<infinity>; z \<in> Z\<^sub>\<infinity>\<rbrakk> \<Longrightarrow> (x + y) + z = x + (y + z)"
-apply (cut_tac mem_ant[of "x"], 
-       cut_tac mem_ant[of "y"], 
-       cut_tac mem_ant[of "z"], simp add:aug_inf_def,
-      (erule disjE)+, (erule exE)+, (simp add:a_zpz)+,
-      (erule exE)+, simp add:a_zpz)
-apply ((erule disjE)+, (erule exE)+, simp,
-        erule exE, simp,
-      (erule disjE)+, (erule exE)+, simp add:a_zpz,
-      erule exE, simp, erule disjE, erule exE, simp)
-apply simp
-done
+lemma Zero_in_aug_minf:
+  shows "0 \<in> Z\<^sub>-\<^sub>\<infinity>"
+  using Zero_ant_def z_in_aug_minf[of 0] by simp
 
-lemma aadd_assoc_m: "\<lbrakk>x \<in> Z\<^sub>-\<^sub>\<infinity>; y \<in> Z\<^sub>-\<^sub>\<infinity>; z \<in> Z\<^sub>-\<^sub>\<infinity>\<rbrakk> \<Longrightarrow> 
-                                 (x + y) + z = x + (y + z)"
-apply (cut_tac mem_ant[of "x"], 
-       cut_tac mem_ant[of "y"], 
-       cut_tac mem_ant[of "z"], simp add:aug_minf_def )
-apply ((erule disjE)+, simp, erule exE, simp,
-       erule disjE, erule exE, simp, (erule exE)+, simp add:a_zpz)
-apply ((erule disjE)+, erule exE, simp, (erule exE)+, simp,
-        erule disjE, erule exE, simp, erule exE, simp add:a_zpz)
-apply ((erule exE)+, simp add:a_zpz)
-done
+lemma aadd_assoc_i: 
+  assumes "x \<in> Z\<^sub>\<infinity>" and "y \<in> Z\<^sub>\<infinity>" and "z \<in> Z\<^sub>\<infinity>" 
+  shows "(x + y) + z = x + (y + z)"
+  using assms add_ant_def aug_inf_def mem_aug_inf[of x] mem_aug_inf[of y] mem_aug_inf[of z] a_zpz 
+a_ipz a_zpi a_ipi by auto
 
-lemma aadd_0_r: "x + (0::ant) = x"
-apply (cut_tac mem_ant[of "x"], simp add:Zero_ant_def)
-apply ((erule disjE)+, simp)
-apply (erule disjE, erule exE, simp add:a_zpz,
-       simp)
-done
+lemma aadd_assoc_m: 
+  assumes "x \<in> Z\<^sub>-\<^sub>\<infinity>" and "y \<in> Z\<^sub>-\<^sub>\<infinity>" and "z \<in> Z\<^sub>-\<^sub>\<infinity>" 
+  shows "(x + y) + z = x + (y + z)"
+  using assms add_ant_def aug_minf_def mem_aug_minf[of x] mem_aug_minf[of y] mem_aug_minf[of z] a_zpz 
+a_mpm a_zpm a_mpz by auto
 
-lemma aadd_0_l: "(0::ant) + x = x"
-apply (cut_tac mem_ant[of "x"], simp add:Zero_ant_def)
-apply ((erule disjE)+, simp)
-apply (erule disjE, erule exE, simp, simp add:a_zpz, simp)
-done
+lemma aadd_0_r: 
+  shows "x + (0::ant) = x"
+  using Zero_ant_def ant_def add_ant_def mem_ant[of x] a_zpz a_ipz a_mpz 
+  by (metis aadd_commute add.left_neutral)
 
-lemma aadd_minus_inv: "(- x) + x = (0::ant)"  (** \<longrightarrow> aadd_minus_l **)
-apply (cut_tac mem_ant[of "x"],
-       erule disjE, simp add:a_minus_minus,
-       erule disjE, erule exE, simp add:aminus, simp add:a_zpz,
-       simp add:Zero_ant_def, simp)
-done
+lemma aadd_0_l: 
+  shows "(0::ant) + x = x"
+  using Zero_ant_def ant_def add_ant_def mem_ant[of x] a_zpz a_zpi a_zpm
+  by (metis aadd_0_r aadd_commute)
 
-lemma aadd_minus_r: "x + (- x) = (0::ant)"
-apply (cut_tac  aadd_minus_inv[of "x"])
-apply (simp add:aadd_commute)
-done
+lemma aadd_minus_inv: 
+  shows "(- x) + x = (0::ant)"  (** \<longrightarrow> aadd_minus_l **)
+  using mem_ant[of x] Zero_ant_def add_ant_def aminus a_zpz a_minus_minus a_mpi aadd_commute by auto
 
-lemma ant_minus_inj:"ant z \<noteq> ant w \<Longrightarrow> - ant z \<noteq> - ant w"
-by (simp add:aminus) 
+lemma aadd_minus_r: 
+  shows "x + (- x) = (0::ant)"
+  using aadd_minus_inv[of x] aadd_commute by simp
 
-lemma aminus_mult_minus: "(- (ant z)) * (ant w) = - ((ant z) * (ant w))"
-apply (simp add:ant_def minus_ant_def,
-       cut_tac ant_z_in_Ainteg[of "z"],
-       cut_tac ant_z_in_Ainteg[of "-z"],
-       cut_tac ant_z_in_Ainteg[of "w"],
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:mult_ant_def) apply (simp add:Abs_Ainteg_inverse,
-       simp add:zag_t_def,
-       cut_tac ant_z_in_Ainteg[of "z * w"])
-apply (simp add:Abs_Ainteg_inverse)
-done
+lemma ant_minus_inj:
+  assumes "ant z \<noteq> ant w" 
+  shows "- ant z \<noteq> - ant w"
+  using assms by (simp add:aminus) 
 
-lemma amult_commute: "(x::ant) * y = y * x"
-apply (cut_tac mem_ant[of "x"],
-       cut_tac mem_ant[of "y"])
-apply (erule disjE, erule disjE, simp)
-apply (erule disjE, erule exE, simp)
-apply (cut_tac x = 0 and y = z in less_linear)
-apply (erule disjE, simp) 
-apply (erule disjE, rotate_tac -1, frule sym, thin_tac "0 = z", simp)
-apply (simp add:inf_ant_def ant_def, simp add:minus_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_z_in_Ainteg[of "0"],
-       cut_tac ant_z_in_Ainteg[of "-1"], 
-       cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply (simp add:mult_ant_def, simp add:Abs_Ainteg_inverse,
-       simp add:zag_t_def, simp)
-apply (simp add:inf_ant_def)
-apply (simp add:mult_ant_def minus_ant_def,
-        cut_tac ant_inf_in_Ainteg,
-        simp add:Abs_Ainteg_inverse,
-        cut_tac ant_minf_in_Ainteg,
-        simp add:Abs_Ainteg_inverse, simp add:zag_t_def)
-apply (erule disjE, erule disjE, simp)
-apply (erule exE,
-       cut_tac x = 0 and y = z in less_linear)
-apply (erule disjE, simp)
-apply (erule disjE, rotate_tac -1, thin_tac "0 = z", simp add:mult_ant_def,
-      simp add:ant_def inf_ant_def minus_ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac z = z in ant_z_in_Ainteg,
-      cut_tac ant_minf_in_Ainteg,
-      simp add:Abs_Ainteg_inverse, simp add:zag_t_def,
-      simp)
-apply (simp add:inf_ant_def minus_ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac z = z in ant_z_in_Ainteg,
-      cut_tac ant_minf_in_Ainteg,
-      simp add:Abs_Ainteg_inverse,
-      simp add:mult_ant_def,
-      simp add:Abs_Ainteg_inverse, simp add:zag_t_def)
-apply ((erule disjE)+, (erule exE)+, simp add:a_z_z)
-apply (erule exE,
-       cut_tac  x = 0 and y = z in less_linear,
-       erule disjE, simp)
-apply (erule disjE, rotate_tac -1, frule sym, thin_tac "0 = z", simp,
-      simp add:mult_ant_def ant_def inf_ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac ant_z_in_Ainteg[of "0"],
-      simp add:Abs_Ainteg_inverse, simp add:zag_t_def,
-      simp)
-apply (erule disjE, erule exE,
-       cut_tac  x = 0 and y = z in less_linear,
-       erule disjE, simp,
-      erule disjE, rotate_tac -1, frule sym, thin_tac "0 = z", simp,
-      simp add:mult_ant_def ant_def inf_ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac ant_z_in_Ainteg[of "0"],
-      simp add:Abs_Ainteg_inverse, simp add:zag_t_def,
-      simp+) 
-done
+lemma aminus_mult_minus: 
+  shows "(- (ant z)) * (ant w) = - ((ant z) * (ant w))"
+  using mult_ant_def aminus a_z_z by auto
 
-lemma z_le_i[simp]:"(ant x) \<le> \<infinity> "
-apply (simp add:le_ant_def ant_def,
-       cut_tac ant_z_in_Ainteg[of "0"],
-       cut_tac ant_z_in_Ainteg[of "x"],
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse,
-       simp add:inf_ant_def,
-       simp add:Abs_Ainteg_inverse)
-done
+lemma amult_commute: 
+  shows "(x::ant) * y = y * x"
+  using mult_ant_def by (simp add: mult.commute zag_t_def)
 
-lemma z_less_i[simp]:"(ant x) < \<infinity> "
-apply (cut_tac z_le_i[of "x"],
-       cut_tac z_neq_inf[of "x"],
-       simp add:less_ant_def)
-done
+lemma z_le_i[simp]:
+  shows "(ant x) \<le> \<infinity> "
+  using ant_def le_ant_def by (simp add: Abs_Ainteg_inverse ant_inf_in_Ainteg inf_ant_def)
 
-lemma m_le_z:"-\<infinity> \<le> (ant x) "
-apply (simp add:le_ant_def ant_def,
-       cut_tac ant_z_in_Ainteg[of "0"],
-       cut_tac ant_z_in_Ainteg[of "x"],
-       cut_tac ant_minf_in_Ainteg,
-       cut_tac ant_inf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse,
-       simp add:inf_ant_def,
-       simp add:minus_ant_def,
-       simp add:Abs_Ainteg_inverse)
-done
+lemma z_less_i[simp]:
+  shows "(ant x) < \<infinity> "
+  using ant_def less_ant_def z_le_i z_neq_inf by auto
 
-lemma m_less_z[simp]:"-\<infinity> < (ant x)"
-apply (cut_tac m_le_z[of "x"],
-       cut_tac z_neq_minf[of "x"],
-       frule not_sym, thin_tac "ant x \<noteq> - \<infinity>",
-       simp add:less_ant_def)
-done
+lemma m_le_z:
+  shows "-\<infinity> \<le> (ant x)"
+  using ant_def le_ant_def by (simp add: Abs_Ainteg_inverse Algebra1.minf ant_minf_in_Ainteg)
 
-lemma noninf_mem_Z:"\<lbrakk>x \<in> Z\<^sub>\<infinity>; x \<noteq> \<infinity>\<rbrakk> \<Longrightarrow> \<exists>(z::int). x = ant z"
-apply (simp add:aug_inf_def)
-apply (cut_tac mem_ant[of "x"], simp)
-done
+lemma m_less_z[simp]:
+  shows "-\<infinity> < (ant x)"
+  using m_le_z[of x] less_ant_def[of "-\<infinity>" "ant x"] z_neq_minf[of x] by simp
 
-lemma z_mem_Z:"ant z \<in> Z\<^sub>\<infinity>" 
-by (simp add:aug_inf_def)
+lemma noninf_mem_Z:
+  assumes "x \<in> Z\<^sub>\<infinity>" and "x \<noteq> \<infinity>" 
+  shows "\<exists>(z::int). x = ant z"
+  using assms mem_aug_inf[of x] by simp
 
-lemma inf_ge_any[simp]:"x \<le> \<infinity>"
-apply (cut_tac mem_ant[of "x"], erule disjE)
- apply (simp add:inf_ant_def minus_ant_def,
-        cut_tac ant_minf_in_Ainteg,
-        cut_tac ant_inf_in_Ainteg,
-        simp add:Abs_Ainteg_inverse,
-        simp add:le_ant_def, simp add:Abs_Ainteg_inverse)
- apply (erule disjE, erule exE, simp)
- apply (simp add:inf_ant_def,
-        cut_tac ant_inf_in_Ainteg,
-        simp add:le_ant_def, simp add:Abs_Ainteg_inverse)
-done
+lemma z_mem_Z:
+  shows "ant z \<in> Z\<^sub>\<infinity>" 
+  by (simp add:aug_inf_def)
 
-lemma zero_lt_inf:"0 < \<infinity>"
-by (simp add:less_ant_def)
+lemma inf_ge_any[simp]:
+  shows "x \<le> \<infinity>"
+  using mem_ant[of x] le_ant_def by (simp add: Abs_Ainteg_inverse ant_inf_in_Ainteg inf_ant_def)
 
-lemma minf_le_any[simp]:"-\<infinity> \<le> x"
-apply (cut_tac mem_ant[of "x"], erule disjE)
- apply (simp add:inf_ant_def minus_ant_def,
-        cut_tac ant_minf_in_Ainteg,
-        cut_tac ant_inf_in_Ainteg,
-        simp add:Abs_Ainteg_inverse,
-        simp add:le_ant_def, simp add:Abs_Ainteg_inverse)
- apply (erule disjE, erule exE, simp)
- apply (simp add:inf_ant_def, simp add:minus_ant_def,
-        cut_tac ant_inf_in_Ainteg,
-        cut_tac ant_minf_in_Ainteg,
-        simp add:le_ant_def, simp add:Abs_Ainteg_inverse)
- apply simp
-done
+lemma zero_lt_inf:
+  shows "0 < \<infinity>"
+  by (simp add:less_ant_def)
 
-lemma minf_less_0:"-\<infinity> < 0"
-by (simp add:less_ant_def)
+lemma minf_le_any[simp]:
+  shows "-\<infinity> \<le> x"
+  using mem_ant[of x] le_ant_def by (simp add: Abs_Ainteg_inverse Algebra1.minf ant_minf_in_Ainteg)
 
-lemma ale_antisym[simp]:"\<lbrakk>(x::ant) \<le> y; y \<le> x \<rbrakk> \<Longrightarrow> x = y"
-apply (rule contrapos_pp, simp+)
-apply (cut_tac  mem_ant[of "x"], cut_tac  mem_ant[of "y"])
-apply (erule disjE, erule disjE, simp)
-apply (erule disjE, erule exE, simp, simp add:ant_def,
-      simp add:minus_ant_def inf_ant_def,
-      cut_tac ant_inf_in_Ainteg,
-      cut_tac ant_minf_in_Ainteg,
-      cut_tac z = z in ant_z_in_Ainteg, simp add:Abs_Ainteg_inverse,
-      simp add:le_ant_def Abs_Ainteg_inverse)
-apply (thin_tac "x \<le> y",
-       simp add:le_ant_def ant_def minus_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply (erule disjE, erule disjE, erule exE,
-       thin_tac "y \<le> x",
-       simp add:le_ant_def ant_def minus_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       cut_tac z = z in ant_z_in_Ainteg, simp add:Abs_Ainteg_inverse)
-apply (thin_tac "y \<le> x",
-       simp add:le_ant_def ant_def minus_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       simp add:Abs_Ainteg_inverse)
-apply ((erule disjE)+, (erule exE)+,
-       cut_tac z = z in ant_z_in_Ainteg,
-       cut_tac z = za in ant_z_in_Ainteg,
-       simp add:le_ant_def ant_def,
-       simp add:Abs_Ainteg_inverse) 
-apply (erule exE, 
-        simp add:le_ant_def ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac z = z in ant_z_in_Ainteg, simp add:Abs_Ainteg_inverse)
-apply (erule disjE, erule exE, thin_tac "y \<le> x",
-       simp add:le_ant_def ant_def minus_ant_def inf_ant_def,
-       cut_tac ant_inf_in_Ainteg,
-       cut_tac ant_minf_in_Ainteg,
-       cut_tac z = z in ant_z_in_Ainteg, simp add:Abs_Ainteg_inverse)
-apply simp
-done
+lemma minf_less_0:
+  shows "-\<infinity> < 0"
+  by (simp add:less_ant_def)
+
+lemma ale_antisym[simp]:
+  assumes "(x::ant) \<le> y" and "y \<le> x" 
+  shows "x = y"
+  using assms ant_def le_ant_def antisym
+  by (smt Ainteg_def Rep_Ainteg Rep_Ainteg_inject mem_Collect_eq mult_eq_0_iff prod.collapse prod.inject zag_def)
 
 lemma x_gt_inf[simp]:"\<infinity> \<le> x \<Longrightarrow> x = \<infinity>"
 apply (cut_tac inf_ge_any[of "x"],
