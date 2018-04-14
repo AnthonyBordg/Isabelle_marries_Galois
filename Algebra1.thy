@@ -2587,70 +2587,58 @@ lemma ale_antisym[simp]:
   using assms ant_def le_ant_def antisym
   by (smt Ainteg_def Rep_Ainteg Rep_Ainteg_inject mem_Collect_eq mult_eq_0_iff prod.collapse prod.inject zag_def)
 
-lemma x_gt_inf[simp]:"\<infinity> \<le> x \<Longrightarrow> x = \<infinity>"
-apply (cut_tac inf_ge_any[of "x"],
-       rule ale_antisym[of "x" "\<infinity>"], assumption+)
-done
+lemma x_gt_inf[simp]:
+  assumes "\<infinity> \<le> x" 
+  shows "x = \<infinity>"
+  using assms inf_ge_any[of x] by simp
 
-lemma Zinf_pOp_closed:"\<lbrakk>x \<in> Z\<^sub>\<infinity>; y \<in> Z\<^sub>\<infinity>\<rbrakk> \<Longrightarrow> x + y \<in> Z\<^sub>\<infinity>"
-apply (cut_tac  mem_ant[of "x"], cut_tac  mem_ant[of "y"],
-       simp add:aug_inf_def,
-      (erule disjE)+, (erule exE)+, simp add:a_zpz,
-       cut_tac z = "-(z + za)" in z_neq_inf,
-       rule contrapos_pp, simp+,
-       cut_tac m1 = "z+za" in aminus[THEN sym], simp add:a_minus_minus,
-       erule exE, simp, simp add:minf_neq_inf[THEN not_sym],
-       erule disjE, erule exE, simp, 
-       simp add:minf_neq_inf[THEN not_sym],
-       simp)
-done
+lemma Zinf_pOp_closed:
+  assumes "x \<in> Z\<^sub>\<infinity>" and "y \<in> Z\<^sub>\<infinity>" 
+  shows "x + y \<in> Z\<^sub>\<infinity>"
+  using assms mem_aug_inf[of x] mem_aug_inf[of y] add_ant_def aug_inf_def a_zpz a_ipz a_zpi a_ipi 
+  by auto
 
-lemma Zminf_pOp_closed:"\<lbrakk>x \<in> Z\<^sub>-\<^sub>\<infinity>; y \<in> Z\<^sub>-\<^sub>\<infinity>\<rbrakk> \<Longrightarrow> x + y \<in> Z\<^sub>-\<^sub>\<infinity>"
-apply (cut_tac  mem_ant[of "x"], cut_tac  mem_ant[of "y"],
-       simp add:aug_minf_def,
-      (erule disjE)+, simp, erule exE, simp,
-       erule disjE, erule exE, simp,
-      (erule exE)+, simp add:a_zpz)
-done
+lemma Zminf_pOp_closed:
+  assumes "x \<in> Z\<^sub>-\<^sub>\<infinity>" and "y \<in> Z\<^sub>-\<^sub>\<infinity>" 
+  shows "x + y \<in> Z\<^sub>-\<^sub>\<infinity>"
+  using assms mem_aug_minf[of x] mem_aug_minf[of y] add_ant_def aug_minf_def a_zpz a_mpz a_zpm a_mpm
+  by auto
 
-lemma amult_distrib1:"(ant z) \<noteq> 0 \<Longrightarrow> 
-             (a + b) * (ant z) = a * (ant z) + b * (ant z)"
-apply (cut_tac mem_ant[of "a"], cut_tac mem_ant[of "b"],
-     (erule disjE)+, simp, cut_tac less_linear[of "z" "0"], 
-      erule disjE, simp, erule disjE, simp, simp add:ant_0, simp,
-      erule disjE, erule exE, simp,
-      cut_tac less_linear[of "z" "0"], 
-      erule disjE, simp add:a_z_z, erule disjE, simp add:ant_0,
-      simp add:a_z_z,
-      cut_tac less_linear[of "z" "0"], simp,
-      erule disjE, simp add:ant_0[THEN sym] a_z_z)
-apply (erule disjE, simp add:ant_0[THEN sym],
-       simp, simp add:ant_0[THEN sym], simp add:a_z_z,
-       (erule disjE)+, (erule exE)+, cut_tac less_linear[of "z" "0"], simp,
-       erule disjE, simp add:a_z_z,
-       erule disjE, simp add:ant_0, simp add:a_z_z,
-       cut_tac less_linear[of "z" "0"],
-       erule disjE, simp add:ant_0[THEN sym])
-apply (simp add:a_z_z, simp, 
-       erule disjE, simp add:ant_0, simp add:ant_0[THEN sym] a_z_z,
-      (erule disjE)+, (erule exE)+, simp add:a_zpz a_z_z,
-       simp add: distrib_right, erule exE, simp add:a_z_z,
-       cut_tac less_linear[of "z" "0"], erule disjE, simp,
-       erule disjE, simp add:ant_0, simp)
-apply (erule disjE, erule exE, simp, 
-       cut_tac less_linear[of "z" "0"], erule disjE, simp add:a_z_z,
-       erule disjE, simp add:ant_0, simp add:a_z_z,
-       cut_tac less_linear[of "z" "0"], erule disjE, simp,
-       erule disjE, simp add:ant_0, simp)
-done
+lemma amult_distrib1: 
+  shows "(a + b) * (ant z) = a * (ant z) + b * (ant z)"
+proof-
+  have f1:"z < 0 \<or> z = 0 \<or> z > 0"
+    using less_linear[of z 0] by (simp add: Zero_ant_def)
+  have f2:"a = - \<infinity> \<or> (\<exists>z'. a = ant z') \<or> a = \<infinity>"
+    using mem_ant[of a] by simp
+  have f3:"b = - \<infinity> \<or> (\<exists>z''. b = ant z'') \<or> b = \<infinity>"
+    using mem_ant[of b] by simp
+  have f4:"(a + b) * ant z = a * ant z + b * ant z" if "\<exists>z'. a = ant z'" and "\<exists>z''. b = ant z''"
+    using that a_z_z a_zpz distrib_right by auto
+  have f5:"(a + b) * ant z = a * ant z + b * ant z" if "z < 0 \<or> z = 0 \<or> z > 0" and "a = -\<infinity> \<or> a = \<infinity>" 
+and "b = -\<infinity> \<or> b = \<infinity>"
+    using that
+    by (smt Zero_ant_def a_i_0 a_i_neg a_i_pos a_ipi a_ipm a_m_0 a_m_pos a_minus_zero a_mpm a_z_z aadd_minus_inv mult_eq_0_iff neg_a_m)
+  have f6:"(a + b) * ant z = a * ant z + b * ant z" if "z < 0 \<or> z = 0 \<or> z > 0" and "\<exists>z'. a = ant z'" 
+and "b = -\<infinity> \<or> b = \<infinity>"
+    using that
+    by (smt Zero_ant_def a_0_i a_0_m a_minus_zero a_neg_i a_neg_m a_pos_i a_pos_m a_z_z a_zpi a_zpm aadd_minus_inv amult_commute mult_eq_0_iff)
+  have "(a + b) * ant z = a * ant z + b * ant z" if "z < 0 \<or> z = 0 \<or> z > 0" and "a = -\<infinity> \<or> a = \<infinity>" 
+and "\<exists>z''. b = ant z''"
+    using that
+    by (metis Zero_ant_def a_i_0 a_i_neg a_i_pos a_ipz a_m_0 a_m_pos a_minus_zero a_mpz a_z_z aadd_minus_inv mult_eq_0_iff neg_a_m)
+  thus "(a + b) * ant z = a * ant z + b * ant z"
+    using f1 f2 f3 f4 f5 f6 by auto
+qed
 
-lemma amult_0_r:"(ant z) * 0 = 0"
-by (simp add:ant_0[THEN sym] a_z_z)
+lemma amult_0_r:
+  shows "(ant z) * 0 = 0"
+  using ant_0 a_z_z[of z 0] by simp
 
-lemma amult_0_l:"0 * (ant z) = 0"
-by (simp add:ant_0[THEN sym] a_z_z)
+lemma amult_0_l:
+  shows "0 * (ant z) = 0"
+  using ant_0 a_z_z[of 0 z] by simp
  
-
 definition
   asprod :: "[int, ant] \<Rightarrow> ant" (infixl "*\<^sub>a" 200) where
   "m *\<^sub>a x == 
@@ -2661,157 +2649,128 @@ definition
                  if m = 0 then 0 else undefined))
           else (ant m) * x)"
 
-lemma asprod_pos_inf[simp]:"0 < m \<Longrightarrow> m *\<^sub>a \<infinity> = \<infinity>"
-apply (simp add:asprod_def)
-done
+lemma asprod_pos_inf[simp]:
+  assumes "0 < m" 
+  shows "m *\<^sub>a \<infinity> = \<infinity>"
+  using assms asprod_def by simp
 
-lemma asprod_neg_inf[simp]:"m < 0 \<Longrightarrow> m *\<^sub>a \<infinity> = -\<infinity>"
-apply (simp add:asprod_def)
-done
+lemma asprod_neg_inf[simp]:
+  assumes "m < 0" 
+  shows "m *\<^sub>a \<infinity> = -\<infinity>"
+  using assms asprod_def by simp
 
-lemma asprod_pos_minf[simp]:"0 < m \<Longrightarrow> m *\<^sub>a (-\<infinity>) = (-\<infinity>)"
-apply (simp add:asprod_def)
-done
+lemma asprod_pos_minf[simp]:
+  assumes "0 < m" 
+  shows "m *\<^sub>a (-\<infinity>) = (-\<infinity>)"
+  using assms asprod_def by simp
 
-lemma asprod_neg_minf[simp]:"m < 0 \<Longrightarrow> m *\<^sub>a (-\<infinity>) = \<infinity>"
-apply (simp add:asprod_def)
-done
+lemma asprod_neg_minf[simp]:
+  assumes "m < 0" 
+  shows "m *\<^sub>a (-\<infinity>) = \<infinity>"
+  using assms asprod_def by simp
 
-lemma asprod_mult:" m *\<^sub>a (ant n) = ant(m * n)"
-apply (cut_tac z_neq_inf[of "n"],
-       cut_tac z_neq_minf[of "n"],
-       simp add:asprod_def, simp add:a_z_z)
-done
+lemma asprod_mult:
+  shows "m *\<^sub>a (ant n) = ant(m * n)"
+  using asprod_def a_z_z by simp
 
-lemma asprod_1:"1 *\<^sub>a x = x"
-by (cut_tac mem_ant[of "x"], erule disjE, simp,
-       erule disjE, erule exE, simp add:asprod_mult, simp)
-(** atode asprod_1_x to awaseru **)
+lemma asprod_1:
+  shows "1 *\<^sub>a x = x"
+  using asprod_def mem_ant[of x] asprod_mult by auto
 
-lemma agsprod_assoc_a:"m *\<^sub>a (n *\<^sub>a (ant x)) = (m * n) *\<^sub>a (ant x)"
-apply (simp add:asprod_mult)
-done
+lemma agsprod_assoc_a:
+  shows "m *\<^sub>a (n *\<^sub>a (ant x)) = (m * n) *\<^sub>a (ant x)"
+  using asprod_mult by simp
 
-lemma agsprod_assoc:"\<lbrakk>m \<noteq> 0; n \<noteq> 0\<rbrakk> \<Longrightarrow> m *\<^sub>a (n *\<^sub>a x) = (m * n) *\<^sub>a x"
-apply (cut_tac less_linear[of "m" "0"], cut_tac less_linear[of "n" "0"],
-       cut_tac mem_ant[of "x"],
-      (erule disjE)+, simp,
-      frule zmult_neg_neg[of "m" "n"], assumption+, simp)
-apply (erule disjE, erule exE, simp add:asprod_mult,
-      frule zmult_neg_neg[of "m" "n"], assumption+, simp+,
-      erule disjE, simp,
-      frule zmult_neg_pos[of "m" "n"], assumption+, simp,
-      erule disjE, erule exE, simp,
-      frule zmult_neg_pos[of "m" "n"], assumption+, simp add:asprod_mult,
-      frule zmult_neg_pos[of "m" "n"], assumption+, simp)      
-apply (simp, (erule disjE)+,
-      frule zmult_pos_neg[of "m" "n"], assumption+,
-      simp,
-      erule disjE, erule exE, simp add:asprod_mult,
-      frule zmult_pos_neg[of "m" "n"], assumption+, simp) 
-apply (frule zmult_pos_pos[of "m" "n"], assumption+,
-      erule disjE, simp,
-      erule disjE, erule exE, simp add:asprod_mult, simp)
-done
+lemma agsprod_assoc:
+  shows "m *\<^sub>a (n *\<^sub>a x) = (m * n) *\<^sub>a x"
+proof-
+  have f1:"m < 0 \<or> m = 0 \<or> m > 0"
+    using less_linear[of m 0] by simp
+  have f2:"n < 0 \<or> n = 0 \<or> n > 0"
+    using less_linear[of n 0] by simp
+  have f3:"x = -\<infinity> \<or> (\<exists>z. x = ant z) \<or> x = \<infinity>"
+    using mem_ant[of x] by simp
+  have f4:"m *\<^sub>a (n *\<^sub>a x) = (m * n) *\<^sub>a x" if "\<exists>z. x = ant z"
+    using that agsprod_assoc_a by auto
+  have f5:"m *\<^sub>a (n *\<^sub>a x) = (m * n) *\<^sub>a x" if "x = -\<infinity> \<or> x = \<infinity>" and "m = 0 \<or> n = 0"
+    using that asprod_def
+    by (metis (mono_tags, hide_lams) Zero_ant_def asprod_mult int_neq_iff mult_zero_left mult_zero_right zless_neq)
+  have "m *\<^sub>a (n *\<^sub>a x) = (m * n) *\<^sub>a x" if "x = -\<infinity> \<or> x = \<infinity>" and "m \<noteq> 0" and "n \<noteq> 0"
+    using that asprod_def
+    by (metis asprod_neg_minf int_neq_iff zmult_neg_neg zmult_neg_pos zmult_pos_neg zmult_pos_pos)
+  thus "m *\<^sub>a (n *\<^sub>a x) = (m * n) *\<^sub>a x"
+    using f1 f2 f3 f4 f5 by auto
+qed
 
-lemma asprod_distrib1:"m \<noteq> 0 \<Longrightarrow> m *\<^sub>a (x + y) = (m *\<^sub>a x) + (m *\<^sub>a y)"
-apply (cut_tac mem_ant[of "x"], cut_tac mem_ant[of "y"])
-apply (cut_tac less_linear[of "m" "0"], 
-      erule disjE,
-      erule disjE, erule disjE, simp,
-      erule disjE, simp add:asprod_def  add_ant_def, simp,
-      simp, (erule disjE)+, erule exE, simp add:asprod_mult,
-      simp add:Zero_ant_def asprod_mult)
-apply (erule disjE, erule exE, simp add:asprod_mult,
-      simp add: Zero_ant_def asprod_mult,
-      erule disjE, erule disjE, erule disjE, erule exE,
-      simp add:asprod_mult,
-      simp add:Zero_ant_def asprod_mult,
-      erule disjE, erule exE, simp add:asprod_mult,
-      simp add:Zero_ant_def asprod_mult)
-apply (simp, erule disjE, erule exE, simp,
-      (erule disjE)+, erule exE, simp add:asprod_mult,
-      simp add:a_zpz, simp add:asprod_mult distrib_left,
-      simp add:asprod_mult)
-apply (erule disjE, erule exE, simp add:a_zpz asprod_mult,
-       simp add: distrib_left, simp add:asprod_mult,
-      (erule disjE)+, erule exE, simp add:asprod_mult, simp,
-      erule disjE, erule exE, simp add:asprod_mult, simp) 
-done
+lemma asprod_distrib1: 
+  shows "m *\<^sub>a (x + y) = (m *\<^sub>a x) + (m *\<^sub>a y)"
+  using mem_ant[of x] mem_ant[of y] less_linear[of m 0] asprod_def asprod_mult
+  by (smt Zero_ant_def a_ipi a_ipm a_ipz a_mpi a_mpm a_mpz a_zpi a_zpm a_zpz amult_distrib1 mult.commute mult_eq_0_iff)
 
-lemma asprod_0_x[simp]:"0 *\<^sub>a x = 0"
- apply (simp add:asprod_def, (rule impI)+,
-        cut_tac mem_ant[of "x"], simp, erule exE,
-        simp add:asprod_def a_z_z, simp add:ant_0)
-done
+lemma asprod_0_x[simp]:
+  shows "0 *\<^sub>a x = 0"
+  using asprod_def mem_ant[of x] ant_0 amult_0_l by auto
 
-lemma asprod_n_0:"n *\<^sub>a 0 = 0"
-apply (simp add:Zero_ant_def asprod_mult)
-done
+lemma asprod_n_0:
+  shows "n *\<^sub>a 0 = 0"
+  using asprod_mult[of n 0] ant_0 by simp
 
-lemma asprod_distrib2:"\<lbrakk>0 < i; 0 < j\<rbrakk> \<Longrightarrow> (i + j) *\<^sub>a x = (i *\<^sub>a x) + (j *\<^sub>a x)"
-by (cut_tac mem_ant[of "x"], erule disjE, simp,
-       erule disjE, erule exE, simp add:asprod_mult,
-       simp add: distrib_right a_zpz, simp)
+lemma asprod_distrib2:
+  assumes "i > 0" and "j > 0"
+  shows "(i + j) *\<^sub>a x = (i *\<^sub>a x) + (j *\<^sub>a x)"
+proof-
+  have f1:"x = -\<infinity> \<or> (\<exists>z. x = ant z) \<or> x = \<infinity>"
+    using mem_ant[of x] by simp
+  have f2:"(i + j) *\<^sub>a x = (i *\<^sub>a x) + (j *\<^sub>a x)" if "\<exists>z. x = ant z"
+    using that amult_distrib1[of "ant i" "ant j"] a_zpz asprod_def by force
+  have "(i + j) *\<^sub>a x = (i *\<^sub>a x) + (j *\<^sub>a x)" if "x = -\<infinity> \<or> x = \<infinity>"
+    using assms that asprod_def by auto
+  thus "(i + j) *\<^sub>a x = (i *\<^sub>a x) + (j *\<^sub>a x)"
+    using f1 f2 by auto
+qed
 
-lemma asprod_minus:"x \<noteq> -\<infinity> \<and> x \<noteq> \<infinity> \<Longrightarrow> - z *\<^sub>a x = z *\<^sub>a (- x)"
-apply (cut_tac mem_ant[of "x"], erule disjE, simp+)
-apply (erule exE, simp add:asprod_mult aminus)
-done
+lemma asprod_minus:
+  assumes "x \<noteq> -\<infinity> \<and> x \<noteq> \<infinity>" 
+  shows "- z *\<^sub>a x = z *\<^sub>a (- x)"
+  using assms asprod_def mem_ant[of x] aminus asprod_mult by auto
 
-lemma asprod_div_eq:"\<lbrakk>n \<noteq> 0; n *\<^sub>a x = n *\<^sub>a y\<rbrakk> \<Longrightarrow> x = y"
-apply (cut_tac less_linear[of "n" "0"], simp)
-apply (cut_tac mem_ant[of "x"], cut_tac mem_ant[of "y"])
-apply ((erule disjE)+, simp,
-      erule disjE, erule exE, rule contrapos_pp, simp+,
-      simp add:asprod_mult)
-apply (cut_tac z1 = "n * z" in z_neq_inf[THEN not_sym], simp+)
-apply ((erule disjE)+, erule exE, simp add:asprod_mult,
-       cut_tac z = "n * z" in z_neq_inf,
-       rule contrapos_pp, simp, simp,
-      (erule disjE)+, (erule exE)+, simp add:asprod_mult,
-       erule exE, simp add: asprod_mult)
-apply (erule disjE, erule exE, simp add:asprod_mult,
-      simp add:z_neq_minf[THEN not_sym], simp)
-apply ((erule disjE)+, simp,
-      erule disjE, erule exE, rule contrapos_pp, simp+,
-      simp add:asprod_mult,
-      cut_tac z1 = "n * z" in z_neq_minf[THEN not_sym], simp,
-      rule contrapos_pp, simp+)
-apply ((erule disjE)+, (erule exE)+, simp add:asprod_mult,
-      erule exE, simp add:asprod_mult,
-      erule disjE, erule exE, simp add:asprod_mult
-      z_neq_inf[THEN not_sym], simp)
-apply (erule disjE, simp, erule disjE, erule exE, simp add:asprod_mult
-        z_neq_inf[THEN not_sym], simp)
-done
+lemma asprod_div_eq:
+  assumes "n \<noteq> 0" and "n *\<^sub>a x = n *\<^sub>a y" 
+  shows "x = y"
+proof-
+  have f1:"n < 0 \<or> n > 0"
+    using assms(1) less_linear[of n 0] by simp
+  have "x = -\<infinity> \<or> (\<exists>z. x = ant z) \<or> x = \<infinity>"
+    using mem_ant[of x] by simp
+  thus "x = y"  
+    using f1 assms(2) asprod_def asprod_mult
+    by (smt a_i_neg a_i_pos a_m_pos adiv_eq amult_commute neg_a_m)
+qed
 
-lemma asprod_0:"\<lbrakk>z \<noteq> 0; z *\<^sub>a x = 0 \<rbrakk> \<Longrightarrow> x = 0"
-by (rule asprod_div_eq[of "z" "x" "0"], assumption, simp add:asprod_n_0)
+lemma asprod_0:
+  assumes "z \<noteq> 0" and "z *\<^sub>a x = 0" 
+  shows "x = 0"
+  using assms asprod_div_eq[of z x 0] asprod_n_0[of z] by simp
 
-lemma asp_z_Z:"z *\<^sub>a ant x \<in> Z\<^sub>\<infinity>" 
-by (simp add:asprod_mult z_in_aug_inf)
+lemma asp_z_Z:
+  shows "z *\<^sub>a ant x \<in> Z\<^sub>\<infinity>"
+  using asprod_mult[of z x] z_in_aug_inf[of "z * x"] by simp
 
-lemma tna_ant:" tna (ant z) = z"
-apply (cut_tac z_neq_minf[of "z"], cut_tac z_neq_inf[of "z"],
-       simp add:ant_def tna_def)
-apply (cut_tac ant_z_in_Ainteg[of "z"], simp add:Abs_Ainteg_inverse)
-done
+lemma tna_ant:
+  shows "tna (ant z) = z"
+  using tna_def[of "ant z"] z_neq_minf[of z] z_neq_inf[of z] inf_ant_def Abs_Ainteg_inverse ant_def 
+ant_z_in_Ainteg by auto
 
-lemma ant_tna:"x \<noteq> \<infinity> \<and> x \<noteq> -\<infinity> \<Longrightarrow>  ant (tna x) = x"
-apply (cut_tac mem_ant[of "x"], simp, erule exE)
-apply (simp add:ant_def tna_def)
-apply (cut_tac z = z in ant_z_in_Ainteg, simp add:Abs_Ainteg_inverse)
-done
+lemma ant_tna:
+  assumes "x \<noteq> \<infinity> \<and> x \<noteq> -\<infinity>" 
+  shows "ant (tna x) = x"
+  using assms mem_ant[of x] tna_ant by auto
 
-lemma ant_sol:"\<lbrakk>a \<in> Z\<^sub>\<infinity>; b \<in> Z\<^sub>\<infinity>; c \<in> Z\<^sub>\<infinity>; b \<noteq> \<infinity>; a = b + c\<rbrakk> \<Longrightarrow> a - b = c" 
-apply (subgoal_tac "-b \<in> Z\<^sub>\<infinity>", simp add:diff_ant_def,
-       subgoal_tac "a + (-b) = b + c + (-b)",
-       subst aadd_commute[of "b" "c"], subst aadd_assoc_i, assumption+,
-       simp add:aadd_minus_r, simp add:aadd_0_r, simp)
-apply (cut_tac mem_ant[of "b"], simp add:aug_inf_def,
-       erule exE, simp add:aminus)
-done
+lemma ant_sol:
+  assumes "a \<in> Z\<^sub>\<infinity>" and "b \<in> Z\<^sub>\<infinity>" and "c \<in> Z\<^sub>\<infinity>" and "b \<noteq> \<infinity>" and "a = b + c" 
+  shows "a - b = c"
+  using assms aug_inf_def diff_ant_def
+  by (metis a_zpi aadd_0_r aadd_assoc_m aadd_commute aadd_minus_r aminus mem_aug_inf z_in_aug_minf)
 
 subsection "Ordering of integers and ordering nats"
 
