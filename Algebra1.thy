@@ -2776,74 +2776,36 @@ subsection "Ordering of integers and ordering nats"
 
 subsection {*The @{text "\<le>"} Ordering*}
 
-lemma zneq_aneq:"(n \<noteq> m) = ((ant n) \<noteq> (ant m))" 
-apply (rule iffI)
- apply (rule contrapos_pp, simp+)
-done
+lemma zneq_aneq:
+  shows "(n \<noteq> m) = ((ant n) \<noteq> (ant m))"
+  by simp
 
-lemma ale:"(n \<le> m) = ((ant n) \<le>(ant m))" 
-apply (rule iffI)
-apply (simp add:ant_def le_ant_def,
-       cut_tac ant_z_in_Ainteg[of "n"],
-       cut_tac ant_z_in_Ainteg[of "m"],
-       simp add:Abs_Ainteg_inverse)+
-done
+lemma ale:
+  shows "(n \<le> m) = ((ant n) \<le>(ant m))"
+  using le_ant_def by (simp add: Abs_Ainteg_inverse ant_def ant_z_in_Ainteg)
 
-lemma aless:"(n < m) = ((ant n) < (ant m))" 
-apply (simp add:less_ant_def,
-       cut_tac ale[of "n" "m"], arith)
-done
+lemma aless:
+  shows "(n < m) = ((ant n) < (ant m))"
+  using less_ant_def ale[of n m] by (simp add: less_le)
 
-lemma ale_refl: "w \<le> (w::ant)"
-apply (cut_tac mem_ant[of "w"],
-       erule disjE, simp,
-       erule disjE, erule exE, simp,
-       subst ale[THEN sym], simp+)
-done 
+lemma ale_refl: 
+  shows "w \<le> (w::ant)"
+  using mem_ant[of w] ale le_ant_def inf_ge_any minf_le_any by (meson order_refl)
 
-lemma aeq_ale:"(a::ant) = b \<Longrightarrow> a \<le> b"
-by (simp add:ale_refl)
+lemma aeq_ale:
+  assumes "(a::ant) = b" 
+  shows "a \<le> b"
+  using assms ale_refl by simp
 
-lemma ale_trans: "\<lbrakk> (i::ant) \<le> j; j \<le> k \<rbrakk> \<Longrightarrow> i \<le> k"
-apply (cut_tac mem_ant[of "i"], cut_tac mem_ant[of "j"], 
-       cut_tac mem_ant[of "k"],
-      (erule disjE)+, simp add:ale_refl, erule disjE, erule exE, simp+,
-      (erule disjE)+, simp add:ale_refl, simp add:ale_refl)
-apply ((erule disjE)+, erule exE, simp+,
-  erule exE, simp,
-       cut_tac x = "ant z" in minf_le_any,
-       frule_tac x = "ant z" in ale_antisym[of _ "-\<infinity>"], assumption+,
-       simp+,
-       cut_tac minf_le_any[of "\<infinity>"], frule ale_antisym[of "-\<infinity>" "\<infinity>"],
-       simp+)
-apply (erule disjE, simp,
-       (erule disjE)+, (erule exE)+, simp,
-       cut_tac x = "ant za" in minf_le_any,
-       frule_tac x = "ant za" in ale_antisym[of _ "-\<infinity>"], assumption+,
-       simp, erule exE,
-       cut_tac x = "ant z" in minf_le_any, simp) 
-apply (cut_tac minf_le_any[of "\<infinity>"], 
-       frule_tac ale_antisym[of "-\<infinity>" "\<infinity>"], assumption+,
-       simp, erule disjE, erule exE, simp,
-       cut_tac x = "ant z" in inf_ge_any, 
-       frule_tac x = "ant z" in ale_antisym[of _ "\<infinity>"], assumption+,
-       simp)
-apply (cut_tac minf_le_any[of "\<infinity>"], frule ale_antisym[of "-\<infinity>" "\<infinity>"],
-       simp+,
-       (erule disjE)+, (erule exE)+, simp add:ale[THEN sym],
-       simp, (erule disjE)+, (erule exE)+,
-       cut_tac x = "ant za" in inf_ge_any,
-       frule_tac x = "ant za" in ale_antisym[of _ "\<infinity>"],
-       simp+)
-apply (erule disjE, erule exE,
-       cut_tac inf_ge_any[of "j"],
-       frule ale_antisym[of "j" "\<infinity>"], assumption+,
-       cut_tac x = "ant z" in inf_ge_any, simp+) 
-done
+lemma ale_trans: 
+  assumes "(i::ant) \<le> j" and "j \<le> k" 
+  shows "i \<le> k"
+  using assms mem_ant[of i] mem_ant[of j] le_ant_def by smt
 
 (* Axiom 'order_aless_le_not_le' of class 'order': *)
-lemma aless_le_not_le: "((w::ant) < z) = (w \<le> z \<and> \<not> z \<le> w)"
-by (auto simp add: less_ant_def) 
+lemma aless_le_not_le: 
+  shows "((w::ant) < z) = (w \<le> z \<and> \<not> z \<le> w)"
+  using less_ant_def[of w z] by auto 
 
 instance ant :: order
 proof qed 
@@ -2851,220 +2813,177 @@ proof qed
   rule ale_refl ale_trans ale_antisym aless_le_not_le)+
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
-lemma ale_linear: "(z::ant) \<le> w \<or> w \<le> z"
-apply (cut_tac mem_ant[of "z"], cut_tac mem_ant[of "w"],
-       erule disjE, simp,
-       erule disjE, simp)
-apply ((erule disjE)+, (erule exE)+, simp add:ale[THEN sym],
-       simp add:linorder_linear)
-apply simp+
-done
+lemma ale_linear: 
+  shows "(z::ant) \<le> w \<or> w \<le> z"
+  using linorder_linear mem_ant[of z] mem_ant[of w] by (metis aeq_ale le_ant_def)
 
 instance ant :: linorder
 proof qed (rule ale_linear)
 
 lemmas aless_linear = less_linear [where 'a = ant]
 
+lemma ant_eq_0_conv [simp]: 
+  shows "(ant n = 0) = (n = 0)"
+  using ant_0 zneq_aneq[of n 0] by simp
 
-lemma ant_eq_0_conv [simp]: "(ant n = 0) = (n = 0)"
-apply (simp add:Zero_ant_def)
-done
+lemma aless_zless: 
+  shows "(ant m < ant n) = (m < n)"
+  by (simp add: ale ant_def linorder_not_le [symmetric]) 
 
-lemma aless_zless: "(ant m < ant n) = (m<n)"
-by (simp add: ale ant_def linorder_not_le [symmetric]) 
+lemma a0_less_int_conv [simp]: 
+  shows "(0 < ant n) = (0 < n)"
+  using aless_zless[of 0 n] by (simp add: ant_0)
 
-lemma a0_less_int_conv [simp]: "(0 < ant n) = (0 < n)"
-apply (simp add:Zero_ant_def)
-apply (simp add:aless[THEN sym])
-done
+lemma a0_less_1: 
+  shows "0 < (1::ant)"
+  using Zero_ant_def One_ant_def aless_zless[of 0 1] by simp 
 
-lemma a0_less_1: "0 < (1::ant)"
-apply (simp add:Zero_ant_def One_ant_def) 
-apply (subst aless_zless) apply simp
-done 
+lemma a0_neq_1 [simp]: 
+  shows "0 \<noteq> (1::ant)"
+  using a0_less_1 by auto
 
-lemma a0_neq_1 [simp]: "0 \<noteq> (1::ant)"
-by (simp only:Zero_ant_def One_ant_def, subst zneq_aneq[THEN sym], simp)
+lemma ale_zle [simp]: 
+  shows "((ant i) \<le> (ant j)) = (i \<le> j)"
+  using ale[of i j] by simp
+(* The lemma above should be removed since we have already lemma "ale" *)
 
-lemma ale_zle [simp]: "((ant i) \<le> (ant j)) = (i\<le>j)"
-by (subst ale[of "i" "j"], simp)
+lemma ant_1 [simp]: 
+  shows "ant 1 = 1"
+  by (simp add: One_ant_def)
+(* This lemma is useless, hence it should be removed *)
 
-lemma ant_1 [simp]: "ant 1 = 1"
-by (simp add: One_ant_def)
+lemma zpos_apos:
+  shows "(0 \<le> n) = (0 \<le> (ant n))"
+  using ale[of 0 n] by (simp add: ant_0)
 
-lemma zpos_apos:"(0 \<le> n) = (0 \<le> (ant n))"
-apply (simp only:ale[of "0" "n"], simp only:ant_0[THEN sym]) 
-done
+lemma zposs_aposss:
+  shows "(0 < n) = (0 < (ant n))"
+  using aless[of 0 n] ant_0 by simp
 
-lemma zposs_aposss:"(0 < n) = (0 < (ant n))"
-apply (rule iffI)
- apply (unfold Zero_ant_def,
-        subst aless[THEN sym, of "0" "n"], simp,
-        subst aless[of "0" "n"], simp)
-done
+lemma an_nat_pos[simp]:
+  shows "0 \<le> an n"
+  using an_def ant_0 zpos_apos by fastforce 
 
-lemma an_nat_pos[simp]:"0 \<le> an n"
-by (simp add:ant_0[THEN sym] an_def) 
+lemma amult_one_l:
+  shows "1 * (x::ant) = x"
+  using ant_1 mem_ant[of x] mult_ant_def a_z_z
+  by (metis a_i_pos a_m_pos amult_commute mult.right_neutral zero_less_one)
 
-lemma amult_one_l:" 1 * (x::ant) = x"
-by (cut_tac mem_ant[of "x"], erule disjE, simp 
-       only:ant_1[THEN sym], simp del:ant_1,
-       erule disjE, erule exE, simp only:ant_1[THEN sym],
-       simp del:ant_1 add:a_z_z,
-       simp only:ant_1[THEN sym], simp del:ant_1)
+lemma amult_one_r:
+  shows "(x::ant)* 1 = x"
+  by (simp add:amult_commute amult_one_l[of "x"])
 
-lemma amult_one_r:"(x::ant)* 1 = x"
-by (cut_tac amult_one_l[of "x"], simp add:amult_commute)
+lemma amult_eq_eq_r:
+  assumes "z \<noteq> 0" and  "a * ant z = b * ant z" 
+  shows "a = b"
+  using assms adiv_eq[of z a b] by simp
 
-lemma amult_eq_eq_r:"\<lbrakk>z \<noteq> 0;  a * ant z = b * ant z\<rbrakk> \<Longrightarrow> a = b"
-apply (cut_tac less_linear[of "z" "0"], simp,
-       cut_tac mem_ant[of "a"], cut_tac mem_ant[of "b"],
-       (erule disjE)+, simp,
-      erule disjE, erule exE, simp add:a_z_z,
-      frule sym, thin_tac "\<infinity> = ant (za * z)", simp,
-      simp, (erule disjE)+, simp, erule exE, simp add:a_z_z, simp)
-apply ((erule disjE)+, (erule exE)+, simp add:a_z_z,
-      erule exE, simp add:a_z_z, erule disjE, erule exE, 
-      simp add:a_z_z,
-      frule sym, thin_tac "- \<infinity> = ant (za * z)", simp, simp,
-      (erule disjE)+, simp, erule disjE, erule exE, simp add:a_z_z,
-      frule sym, thin_tac "- \<infinity> = ant (za * z)", simp, simp)
-apply ((erule disjE)+, erule exE, simp add:a_z_z, simp,
-       (erule disjE)+, (erule exE)+, simp add:a_z_z,
-       erule exE, simp add:a_z_z, erule disjE, erule exE, simp add:a_z_z,
-       frule sym, thin_tac "\<infinity> = ant (za * z)", simp, simp)
-done
+lemma amult_eq_eq_l:
+  assumes "z \<noteq> 0" and "(ant z) * a = (ant z) * b" 
+  shows "a = b"
+  using assms amult_commute amult_eq_eq_r[of z a b] by simp
 
-lemma amult_eq_eq_l:"\<lbrakk>z \<noteq> 0;  (ant z) * a = (ant z) * b\<rbrakk> \<Longrightarrow> a = b"
-by (simp add:amult_commute, rule amult_eq_eq_r, assumption+)
+lemma amult_pos:
+  assumes "0 < b" and "0 \<le> x"  
+  shows "x \<le> (b *\<^sub>a x)"
+  using assms asprod_def asprod_mult mem_ant[of x]
+  by (metis aeq_ale ale_zle mult.commute pos_zmult_pos zpos_apos)
 
-lemma amult_pos:"\<lbrakk>0 < b; 0 \<le> x\<rbrakk>  \<Longrightarrow> x \<le> (b *\<^sub>a x)" 
-apply (cut_tac mem_ant[of "x"], erule disjE, simp,
-       erule disjE, erule exE, simp add:asprod_mult,
-       simp add:zpos_apos[THEN sym],
-       frule_tac a = z and b = b in pos_zmult_pos, assumption+,
-       simp add:mult.commute, simp)
-done
+lemma asprod_amult:
+  assumes "0 < z" 
+  shows "z *\<^sub>a x = (ant z) * x"
+  using assms asprod_def by simp
 
-lemma asprod_amult:"0 < z \<Longrightarrow> z *\<^sub>a x = (ant z) * x"
-apply (simp add:asprod_def)
-done
+lemma amult_pos1:
+  assumes "0 < b" and "0 \<le> x"  
+  shows "x \<le> ((ant b) * x)"
+  using assms amult_pos[of b x] asprod_amult[of b x] by simp
 
-lemma amult_pos1:"\<lbrakk>0 < b; 0 \<le> x\<rbrakk>  \<Longrightarrow> x \<le> ((ant b) * x)" 
-by (frule amult_pos[of "b" "x"], assumption, simp add:asprod_amult)
+lemma amult_pos_mono_l:
+  assumes "0 < w" 
+  shows "(((ant w) * x) \<le> ((ant w) * y)) =  (x \<le> y)"
+  using assms mem_ant[of x] mem_ant[of y] le_ant_def a_z_z
+  by (smt a_pos_i a_pos_m ale_antisym ale_zle int_mult_mono m_le_z z_le_i)
 
-lemma amult_pos_mono_l:"0 < w \<Longrightarrow> (((ant w) * x) \<le> ((ant w) * y)) =  (x \<le> y)"
-apply (cut_tac mem_ant[of "x"], cut_tac mem_ant[of "y"],
-      (erule disjE)+, simp, erule disjE, erule exE, simp, simp,
-      (erule disjE)+, erule exE, simp add:a_z_z)
-apply (rule iffI,
-       cut_tac x = "ant (w * z)" in minf_le_any, frule_tac x = "ant (w * z)"
-       in ale_antisym, assumption+, simp,
-       cut_tac x = "ant z" in minf_le_any, frule_tac x = "ant z"
-       in ale_antisym, assumption+, simp) 
- apply simp
-apply ((erule disjE)+, (erule exE)+, simp add:a_z_z)
-apply (erule exE, simp add:a_z_z)
-apply (erule disjE, erule exE, simp add:a_z_z,
-       rule iffI,
-       cut_tac x = "ant (w * z)" in inf_ge_any, 
-       frule_tac x = "ant (w * z)" in ale_antisym[of _ "\<infinity>"], assumption+,
-       simp,
-       cut_tac x = "ant z" in inf_ge_any, 
-       frule_tac x = "ant z" in ale_antisym[of _ "\<infinity>"], assumption+,
-       simp, simp)
-done
+lemma amult_pos_mono_r:
+  assumes "0 < w" 
+  shows "((x * (ant w)) \<le> (y * (ant w))) =  (x \<le> y)"
+  using assms amult_commute amult_pos_mono_l[of w x y] by simp
 
-lemma amult_pos_mono_r:"0 < w \<Longrightarrow> ((x * (ant w)) \<le> (y * (ant w))) =  (x \<le> y)"
-apply (simp add:amult_commute[of _ "ant w"])
-apply (rule amult_pos_mono_l, assumption)
-done
+lemma apos_neq_minf:
+  assumes "0 \<le> a" 
+  shows "a \<noteq> -\<infinity>"
+  using assms minf_less_0 by simp
 
-lemma apos_neq_minf:"0 \<le> a \<Longrightarrow> a \<noteq> -\<infinity>"
-by (rule contrapos_pp, simp+,
-       cut_tac minf_le_any[of "0"],
-       frule ale_antisym[of "0" "-\<infinity>"], assumption+, simp)
+lemma asprod_pos_mono:
+  assumes "0 < w" 
+  shows "((w *\<^sub>a x) \<le> (w *\<^sub>a y)) =  (x \<le> y)"
+  using assms amult_pos_mono_l[of w x y] asprod_amult by simp
 
-lemma asprod_pos_mono:"0 < w \<Longrightarrow> ((w *\<^sub>a x) \<le> (w *\<^sub>a y)) =  (x \<le> y)"
-by (simp add:asprod_amult, simp add:amult_pos_mono_l)
+lemma a_inv:
+  assumes "(a::ant) + b = 0" 
+  shows "a = -b"
+  using assms mem_ant[of a] mem_ant[of b] ant_0 a_minus_minus aminus a_zpz by auto
 
-lemma a_inv:"(a::ant) + b = 0 \<Longrightarrow> a = -b"
-apply (cut_tac mem_ant[of "a"], cut_tac mem_ant[of "b"],
-       (erule disjE)+, frule sym, thin_tac "a + b = 0", 
-       simp add:ant_0[THEN sym])
-apply (erule disjE, erule exE, simp, simp,
-      (erule disjE)+, erule exE, simp, simp,
-      simp add:a_minus_minus,
-      (erule disjE)+, (erule exE)+, simp add:aminus a_zpz,
-      erule exE, simp,
-      erule disjE, erule exE, simp, simp) 
-done 
+lemma asprod_pos_pos:
+  assumes "0 \<le> x" 
+  shows "0 \<le> int n *\<^sub>a x"
+  using assms asprod_0_x[of x] amult_pos[of "int n" x] by fastforce
 
-lemma asprod_pos_pos:"0 \<le> x \<Longrightarrow> 0 \<le> int n *\<^sub>a x" 
-apply (cases "n = 0")
-apply simp_all
-using asprod_pos_mono [THEN sym, of "int n" "0" "x"]
-apply (simp add:asprod_n_0)
-done
+lemma asprod_1_x[simp]:
+  shows "1 *\<^sub>a x = x"
+  using asprod_1[of x] by simp
 
-lemma asprod_1_x[simp]:"1 *\<^sub>a x = x"
-apply (simp add:asprod_def)
-apply (rule impI)+
-apply (cut_tac mem_ant[of "x"], simp, erule exE, simp add:a_z_z)
-apply (simp only:ant_1[THEN sym], simp del:ant_1 add:a_z_z)
-done
-
-lemma asprod_n_1[simp]:"n *\<^sub>a 1 = ant n"
-apply (simp only:ant_1[THEN sym]) apply (simp only:asprod_mult)
-apply simp
-done
+lemma asprod_n_1[simp]:
+  shows "n *\<^sub>a 1 = ant n"
+  using ant_1 asprod_mult[of n 1] by simp
 
 subsection "Aug ordering"
 
-lemma aless_imp_le:" x < (y::ant) \<Longrightarrow> x \<le> y"
-by (simp add:less_ant_def)
+lemma aless_imp_le:
+  assumes "x < (y::ant)" 
+  shows "x \<le> y"
+  using assms less_ant_def[of x y] by simp
 
-lemma gt_a0_ge_1:"(0::ant) < x \<Longrightarrow> 1 \<le> x"
-apply (cut_tac mem_ant[of "x"],
-       erule disjE, unfold Zero_ant_def, simp)
-apply (cut_tac less_ant_def[of "0" "-\<infinity>"], simp add:ant_0,
-       cut_tac minf_le_any[of "0"],
-       frule ale_antisym[of "0" "-\<infinity>"], assumption+,
-       simp add:ant_0[THEN sym], blast)
-apply (erule disjE, erule exE, unfold One_ant_def, simp del:ant_1,
-       simp add:aless_zless, simp)
-done  
+lemma gt_a0_ge_1:
+  assumes "(0::ant) < x" 
+  shows "1 \<le> x"
+  using assms mem_ant[of x] ant_0 ant_1 inf_ge_any[of 1]
+  by (metis a0_less_1 a0_less_int_conv amult_pos apos_neq_minf asprod_mult less_ant_def mult.right_neutral) 
 
-lemma gt_a0_ge_aN:"\<lbrakk>0 < x; N \<noteq> 0\<rbrakk>  \<Longrightarrow> (ant (int N)) \<le> (int N) *\<^sub>a x"
- apply (cut_tac mem_ant[of "x"], erule disjE, simp) 
- apply (cut_tac aless_imp_le[of "0" "-\<infinity>"],
-        cut_tac minf_le_any[of "0"], 
-      frule ale_antisym[of "0" "-\<infinity>"], simp,
-      simp only: Zero_ant_def, simp)
- apply (erule disjE, erule exE, simp add:asprod_mult, simp)
-done
+lemma gt_a0_ge_aN:
+  assumes "0 < x" and "N \<noteq> 0"  
+  shows "(ant (int N)) \<le> (int N) *\<^sub>a x"
+  using assms mem_ant[of x]
+  by (metis ale ale_trans asprod_1_x asprod_n_1 asprod_pos_mono asprod_pos_pos gt_a0_ge_1 less_ant_def less_linear not_le of_nat_0_le_iff of_nat_1)
 
-lemma aless_le_trans:"\<lbrakk>(x::ant) < y; y \<le> z\<rbrakk> \<Longrightarrow> x < z"
-by auto
+lemma aless_le_trans:
+  assumes "(x::ant) < y" and "y \<le> z" 
+  shows "x < z"
+  using assms by simp
 
-lemma ale_less_trans:"\<lbrakk>(x::ant) \<le> y; y < z\<rbrakk> \<Longrightarrow> x < z"
-by auto
+lemma ale_less_trans:
+  assumes "(x::ant) \<le> y" and "y < z" 
+  shows "x < z"
+  using assms by simp
 
-lemma aless_trans:"\<lbrakk>(x::ant) < y; y < z\<rbrakk> \<Longrightarrow> x < z"
-by auto
+lemma aless_trans:
+  assumes "(x::ant) < y" and "y < z" 
+  shows "x < z"
+  using assms by simp
 
-lemma ale_neq_less:"\<lbrakk> (x::ant)\<le> y; x \<noteq> y\<rbrakk> \<Longrightarrow> x < y" 
-apply (simp add:less_ant_def)
-done
+lemma ale_neq_less:
+  assumes "(x::ant) \<le> y" and "x \<noteq> y" 
+  shows "x < y"
+  using assms by simp
 
-lemma aneg_le:"(\<not> (x::ant) \<le> y) = (y  <  x)"
-apply (cut_tac ale_linear[of "y" "x"])
-apply (rule iffI, simp) 
-apply (rule contrapos_pp, simp+) 
-done
+lemma aneg_le:
+  shows "(\<not> (x::ant) \<le> y) = (y < x)"
+  using ale_linear[of x y] by auto
 
-lemma aneg_less:"(\<not> x < (y::ant)) = (y \<le> x)"
-by auto
+lemma aneg_less:
+  shows "(\<not> x < (y::ant)) = (y \<le> x)"
+  by auto
 
 lemma aadd_le_mono:"x \<le> (y::ant) \<Longrightarrow> x + z \<le> y + z"
 apply (cut_tac mem_ant[of "x"], cut_tac mem_ant[of "y"], 
