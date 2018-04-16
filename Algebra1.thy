@@ -3046,191 +3046,105 @@ lemma aadd_two_pos:
   shows "0 \<le> x + y"
   using assms aadd_le_mono[of 0 x y] aadd_0_l[of y] by auto
 
-lemma aadd_pos_poss:"\<lbrakk>(0::ant) \<le> x; 0 < y\<rbrakk> \<Longrightarrow> 0 < (x + y)"
- apply (frule aless_imp_le[of "0" "y"],
-        subst less_ant_def, rule conjI, simp add:aadd_two_pos,
-        rule contrapos_pp, simp+)
- apply (cut_tac Zero_in_aug_inf,
-        cut_tac pos_in_aug_inf[of "x"],
-        cut_tac pos_in_aug_inf[of "y"],
-        case_tac "y = \<infinity>", simp,
-        cut_tac mem_ant[of "x"], erule disjE,
-        simp add:aug_inf_def)
- apply (erule disjE, erule exE, simp, simp,
-        case_tac "x = \<infinity>", unfold Zero_ant_def, 
-        frule aug_inf_noninf_is_z[of "y"], assumption, erule exE,
-        simp, frule sym, thin_tac "\<infinity> = ant 0", simp)
- apply (thin_tac "ant 0 \<le> y",
-        frule aug_inf_noninf_is_z[of "x"], assumption, erule exE,
-        frule aug_inf_noninf_is_z[of "y"], assumption, erule exE,
-        simp add:a_zpz, simp add: aless_zless)
- apply (simp add:aless_imp_le)+
-done
+lemma aadd_pos_poss:
+  assumes "(0::ant) \<le> x" and "0 < y" 
+  shows "0 < (x + y)"
+  using assms aadd_two_pos by (metis aadd_0_l aadd_le_mono aneg_le less_ant_def)
 
-lemma aadd_poss_pos:"\<lbrakk>(0::ant) < x; 0 \<le> y\<rbrakk> \<Longrightarrow> 0 < (x + y)"
-apply (subst aadd_commute, rule aadd_pos_poss, assumption+)
-done
+lemma aadd_poss_pos:
+  assumes "(0::ant) < x" and "0 \<le> y" 
+  shows "0 < (x + y)"
+  using assms aadd_pos_poss[of y x] aadd_commute[of x y] by simp
 
-lemma aadd_pos_le:"0 \<le> (a::ant) \<Longrightarrow> b \<le> a + b"
-apply (cut_tac mem_ant[of "a"], (erule disjE)+,
-       simp, cut_tac minf_le_any[of "0"], frule ale_antisym[of "0" "-\<infinity>"],
-       assumption+, simp) 
-apply (erule disjE, erule exE,
-      simp, thin_tac "a = ant z", cut_tac mem_ant[of "b"],
-      erule disjE, simp,
-      erule disjE, erule exE, simp add:a_zpz, simp only:ant_0[THEN sym], 
-      simp only:ale, simp+)
-apply (cut_tac mem_ant[of "b"],
-      erule disjE, simp,
-      erule disjE, erule exE, simp, simp)
-done     
+lemma aadd_pos_le:
+  assumes "0 \<le> (a::ant)" 
+  shows "b \<le> a + b"
+  using assms mem_ant[of a] mem_ant[of b] a_zpz minf_le_any le_ant_def inf_ge_any 
+  by (metis aadd_0_l aadd_le_mono)    
 
-lemma aadd_poss_less:"\<lbrakk>b \<noteq> \<infinity>; b \<noteq> -\<infinity>; 0 < a\<rbrakk>  \<Longrightarrow> b < a + b" 
-apply (cut_tac mem_ant[of "b"], simp)
-apply (erule exE,
-       cut_tac mem_ant[of "a"], erule disjE, simp,
-       thin_tac "a = - \<infinity>", 
-       cut_tac minf_le_any[of "0"],
-       frule aless_imp_le[of "0" "-\<infinity>"],
-       frule ale_antisym[of "0" "-\<infinity>"], assumption+,
-       simp only:ant_0[THEN sym], simp)
-apply (erule disjE, erule exE, simp add:a_zpz,
-       subst aless[THEN sym], simp, simp)
-done
+lemma aadd_poss_less:
+  assumes "b \<noteq> \<infinity>" and "b \<noteq> -\<infinity>" and "0 < a"  
+  shows "b < a + b"
+  using assms mem_ant[of b] mem_ant[of a] a_zpz aadd_pos_le less_ant_def m_less_z 
+  by auto
 
-lemma ale_neg:"(0::ant) \<le> x \<Longrightarrow> (- x) \<le> 0"
-apply (frule pos_in_aug_inf[of "x"])
- apply (case_tac "x = \<infinity>", simp,
-        frule aug_inf_noninf_is_z[of "x"], assumption, erule exE,
-        simp add:aminus, unfold Zero_ant_def,
-        simp only:ale_zle)
-done
+lemma ale_neg:
+  assumes "(0::ant) \<le> x" 
+  shows "(- x) \<le> 0"
+  using assms pos_in_aug_inf aug_inf_noninf_is_z aminus by (metis aadd_minus_r aadd_pos_le)
 
-lemma ale_diff_pos:"(x::ant) \<le> y \<Longrightarrow> 0 \<le> (y - x)"
-apply (case_tac "y = -\<infinity>", simp,
-       cut_tac minf_le_any[of "x"],
-       frule ale_antisym[of "x" "-\<infinity>"], assumption+, 
-       simp add:diff_ant_def a_minus_minus,
-       cut_tac mem_ant[of "y"], simp, thin_tac "y \<noteq> - \<infinity>",
-       erule disjE, erule exE)
-apply (case_tac "x = \<infinity>", simp,
-       cut_tac x = "ant z" in inf_ge_any,
-       frule_tac x = "ant z" in ale_antisym[of _ "\<infinity>"], simp+,
-      cut_tac mem_ant[of "x"], simp+, erule disjE,
-      simp add:diff_ant_def a_minus_minus)
-apply (erule exE, simp add:a_zdz, unfold Zero_ant_def,
-       simp only:ale_zle,
-       cut_tac mem_ant[of "x"], erule disjE, 
-       simp add:diff_ant_def a_minus_minus,
-       erule disjE, erule exE, simp add:diff_ant_def aminus,
-       simp add:diff_ant_def ant_0)
-done
+lemma ale_diff_pos:
+  assumes "(x::ant) \<le> y" 
+  shows "0 \<le> (y - x)"
+  using assms diff_ant_def by (metis aadd_le_mono aadd_minus_r)
 
-lemma aless_diff_poss:"(x::ant) < y \<Longrightarrow> 0 < (y - x)"
-apply (case_tac "y = -\<infinity>", simp,
-       cut_tac minf_le_any[of "x"],
-       frule less_imp_le[of "x" "-\<infinity>"],
-       frule antisym[of "x" "-\<infinity>"], assumption+, 
-       cut_tac less_le[of "x" "-\<infinity>"], simp) 
-apply (case_tac "x = -\<infinity>", simp,
-       case_tac "y = \<infinity>", simp add:diff_ant_def a_minus_minus,
-       simp add:zero_lt_inf,
-       cut_tac mem_ant[of "y"], simp, erule exE, simp add:diff_ant_def
-        a_minus_minus, simp add:zero_lt_inf)
-apply (case_tac "x = \<infinity>", simp,
-       frule aless_imp_le[of "\<infinity>" "y"], 
-       cut_tac inf_ge_any[of "y"], frule ale_antisym[of "y" "\<infinity>"],
-       assumption+, simp,
-       cut_tac mem_ant[of "x"], simp, erule exE,
-       case_tac "y = \<infinity>", simp add:diff_ant_def aminus,
-       simp add:zero_lt_inf)
-apply (cut_tac mem_ant[of "y"], simp, erule exE, simp,
-       simp add:diff_ant_def, simp add:aminus a_zpz, 
-       simp add:aless_zless)
-done
+lemma aless_diff_poss:
+  assumes "(x::ant) < y" 
+  shows "0 < (y - x)"
+  using assms diff_ant_def aadd_minus_r by (metis a_inv ale_diff_pos less_le)
 
-lemma ale_minus:" (x::ant) \<le> y \<Longrightarrow> - y \<le> - x"
-apply (cut_tac mem_ant[of "x"], cut_tac mem_ant[of "y"])
- apply ((erule disjE)+, simp, erule disjE, erule exE, 
-        simp add:aminus a_minus_minus, simp add:a_minus_minus,
- (erule disjE)+, (erule exE)+,
-  simp, cut_tac x = "ant z" in minf_le_any, frule_tac x = "ant z" in 
-  ale_antisym[of _ "-\<infinity>"], assumption+, simp,
-  simp, cut_tac x = \<infinity> in minf_le_any, 
-  frule_tac x = \<infinity> in ale_antisym[of _ "-\<infinity>"], assumption+, simp)
- apply ((erule disjE)+, (erule exE)+, simp add:aminus, erule exE, simp,
-        erule disjE, erule exE, simp, cut_tac x = "ant z" in inf_ge_any, 
-        frule_tac x = "ant z" in ale_antisym[of _ "\<infinity>"], assumption+, simp,
-        simp)
-done
+lemma ale_minus:
+  assumes "(x::ant) \<le> y" 
+  shows "- y \<le> - x"
+  using assms mem_ant[of x] mem_ant[of y] aminus minf_le_any inf_ge_any a_minus_minus le_ant_def ale_zle
+  by (smt eq_iff)
 
-lemma aless_minus:"(x::ant) < y \<Longrightarrow> - y < - x"
-by (simp add:less_ant_def, erule conjE, simp add:ale_minus,
-       rule not_sym, rule contrapos_pp, simp+,
-       cut_tac a_minus_minus[of "x"], simp add:a_minus_minus)
+lemma aless_minus:
+  assumes "(x::ant) < y" 
+  shows "- y < - x"
+  using assms ale_minus less_ant_def by (metis a_minus_minus)
 
-lemma aadd_minus_le:"(a::ant) \<le> 0 \<Longrightarrow> a + b \<le> b"
-apply (frule ale_minus[of "a" "0"],
-       cut_tac aadd_pos_le[of "-a" "-b"], simp add:aminus_0)
-apply (frule ale_minus[of "-b" "-a + -b"], simp add:aminus_add_distrib,
-       simp add:a_minus_minus, simp add:aminus_0)
-done
+lemma aadd_minus_le:
+  assumes "(a::ant) \<le> 0" 
+  shows "a + b \<le> b"
+  using assms ale_minus[of a 0] ale_minus[of "-b" "-a + -b"] aadd_pos_le[of "-a" "-b"] a_minus_minus
+aminus_add_distrib by simp
 
-lemma aadd_minus_less:"\<lbrakk>b \<noteq> -\<infinity> \<and> b \<noteq> \<infinity>; (a::ant) < 0\<rbrakk> \<Longrightarrow> a + b < b"
-apply (simp add:less_ant_def, erule conjE,
-       simp add:aadd_minus_le)
-apply (rule contrapos_pp, simp+,
-      cut_tac mem_ant[of "a"], cut_tac mem_ant[of "b"],
-      simp, erule disjE, erule exE, simp, 
-      frule sym, thin_tac "- \<infinity> = ant z", simp,
-      erule disjE, (erule exE)+, simp add:a_zpz,
-      erule exE, simp, frule sym, thin_tac "\<infinity> = ant z", simp)
-done
+lemma aadd_minus_less:
+  assumes "b \<noteq> -\<infinity> \<and> b \<noteq> \<infinity>" and "(a::ant) < 0" 
+  shows "a + b < b"
+  using assms aadd_minus_le less_ant_def
+  by (metis a_minus_minus a_minus_zero aadd_poss_less aless_minus aminus_add_distrib)
 
-lemma an_inj:"an n = an m \<Longrightarrow> n = m"
-apply (simp add:an_def)
-done 
+lemma an_inj:
+  assumes "an n = an m" 
+  shows "n = m"
+  using assms an_def by simp
 
-lemma nat_eq_an_eq:"n = m \<Longrightarrow> an n = an m"
-apply simp
-done
+lemma nat_eq_an_eq:
+  assumes "n = m" 
+  shows "an n = an m"
+  using assms an_def by simp
 
-lemma aneq_natneq:"(an n \<noteq> an m) = (n \<noteq> m)"
-apply (simp add:an_def)
-done 
+lemma aneq_natneq:
+  shows "(an n \<noteq> an m) = (n \<noteq> m)"
+  by (simp add:an_def)
 
-lemma ale_natle:" (an n \<le> an m) = (n \<le> m)"
-apply (simp add:an_def)
-done
+lemma ale_natle:
+  shows "(an n \<le> an m) = (n \<le> m)"
+  by (simp add:an_def)
 
-lemma aless_natless:"(an n < an m) = (n < m)"
-apply (simp add:an_def)
-apply (simp add:aless_zless)
-done
+lemma aless_natless:
+  shows "(an n < an m) = (n < m)"
+  using an_def aless_zless by simp
 
-lemma na_an:"na (an n) = n"
-by (simp only:na_def an_def,
-       subgoal_tac "\<not> ant (int n) < 0", simp,
-       simp add:tna_ant, subst aneg_less[of "ant (int n)" "0"],
-       simp only:ant_0[THEN sym], subst ale_zle[of "0" "int n"], simp)
+lemma na_an:
+  shows "na (an n) = n"
+  using na_def an_def an_nat_pos[of n] by (simp add: leD tna_ant)
 
 lemma asprod_ge:
-  "0 < b \<Longrightarrow> N \<noteq> 0 \<Longrightarrow> an N \<le> int N *\<^sub>a b" 
-apply (frule aposs_le_1[of "b"])
-apply simp
-using asprod_pos_mono [THEN sym, of "int N" "1" "b"]
-apply (simp only: ant_1 [THEN sym], simp add: asprod_amult, simp add:an_def)
-done
+  assumes "0 < b" and "N \<noteq> 0" 
+  shows "an N \<le> int N *\<^sub>a b"
+  using assms aposs_le_1[of b] asprod_pos_mono[of "int N" 1 b] by (simp add: an_def)
 
-lemma an_npn:"an (n + m) = an n + an m"
-by (unfold an_def, simp add:a_zpz)
+lemma an_npn:
+  shows "an (n + m) = an n + an m"
+  using an_def a_zpz by simp
 
-lemma an_ndn:"n \<le> m \<Longrightarrow> an (m - n) = an m - an n"
-apply (cut_tac an_npn[of "m - n" n], simp)
-apply (unfold an_def)
- apply (simp add:a_zpz[of "int (m - n)" "int n"]) 
- apply (subst a_zdz[of "int (m - n) + int n" "int n"], simp)
-done
+lemma an_ndn:
+  assumes "n \<le> m" 
+  shows "an (m - n) = an m - an n"
+  using assms an_npn[of "m - n" n] by (simp add: a_zpz aminus an_def diff_ant_def)
 
 section "Amin, amax"
 
