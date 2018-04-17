@@ -3166,203 +3166,202 @@ where
   Amax_0 : "Amax 0 f = f 0"
 | Amax_Suc :"Amax (Suc n) f = amax (Amax n f) (f (Suc n))"
 
-lemma amin_ge:"x \<le> amin x y \<or> y \<le> amin x y"
-apply (simp add:amin_def)
-done
+lemma amin_ge:
+  shows "x \<le> amin x y \<or> y \<le> amin x y"
+  by (simp add:amin_def)
 
-lemma amin_le_l:"amin x y \<le> x"
-apply (simp add:amin_def, cut_tac ale_linear[of "x" "y"],
-       rule impI, simp)
-done
+lemma amin_le_l:
+  shows "amin x y \<le> x"
+  using amin_def by auto
 
-lemma amin_le_r:"amin x y \<le> y"
-apply (simp add:amin_def) 
-done
+lemma amin_le_r:
+  shows "amin x y \<le> y"
+  by (simp add:amin_def) 
 
-lemma amax_le:"amax x y \<le> x \<or> amax x y \<le> y"
-apply (simp add:amax_def)
-done
+lemma amax_le:
+  shows "amax x y \<le> x \<or> amax x y \<le> y"
+  by (simp add:amax_def)
 
-lemma amax_le_n:"\<lbrakk>x \<le> n; y \<le> n\<rbrakk> \<Longrightarrow> amax x y \<le> n" 
-by (simp add:amax_def)
+lemma amax_le_n:
+  assumes "x \<le> n" and "y \<le> n" 
+  shows "amax x y \<le> n" 
+  using assms by (simp add:amax_def)
 
-lemma amax_ge_l:"x \<le> amax x y"
-apply (simp add:amax_def)
-done
+lemma amax_ge_l:
+  shows "x \<le> amax x y"
+  by (simp add:amax_def)
 
-lemma amax_ge_r:"y \<le> amax x y"
-apply (simp add:amax_def, cut_tac ale_linear[of "x" "y"],
-       rule impI, simp)
-done
+lemma amax_ge_r:
+  shows "y \<le> amax x y"
+  using amax_def by auto
 
-lemma amin_mem_i:"\<lbrakk>x \<in> Z\<^sub>\<infinity>; y \<in> Z\<^sub>\<infinity>\<rbrakk> \<Longrightarrow> amin x y \<in> Z\<^sub>\<infinity>"  
-apply (cut_tac mem_ant[of "x"], cut_tac mem_ant[of "y"], simp add:aug_inf_def,
-      (erule disjE)+, (erule exE)+, cut_tac amin_ge[of "x" "y"],
-      rule contrapos_pp, simp+,
-      erule disjE,
-      cut_tac x = "ant z" in minf_le_any,
-      frule_tac x = "ant z" in ale_antisym[of _ "-\<infinity>"], assumption+, simp,
-      cut_tac x = "ant za" in minf_le_any,
-      frule_tac x = "ant za" in ale_antisym[of _ "-\<infinity>"], assumption+, simp)
- apply (erule exE, simp add:amin_def, erule disjE, 
-        erule exE, simp add:amin_def, simp add:amin_def)
-done
+lemma amin_mem_i:
+  assumes "x \<in> Z\<^sub>\<infinity>" and "y \<in> Z\<^sub>\<infinity>" 
+  shows "amin x y \<in> Z\<^sub>\<infinity>"
+  using assms aug_inf_def amin_def by simp
 
-lemma amax_mem_m:"\<lbrakk>x \<in> Z\<^sub>-\<^sub>\<infinity>; y \<in> Z\<^sub>-\<^sub>\<infinity>\<rbrakk> \<Longrightarrow> amax x y \<in> Z\<^sub>-\<^sub>\<infinity>"  
-apply (cut_tac mem_ant[of "x"], cut_tac mem_ant[of "y"],
-      simp add:aug_minf_def)
-apply ((erule disjE)+, simp add:amax_def,
-       erule exE, simp add:amax_def,
-       erule disjE, erule exE, simp add:amax_def)
-apply ((erule exE)+, cut_tac amax_le[of "x" "y"], 
-       rule contrapos_pp, simp+) apply (erule disjE,
-       cut_tac x = "ant z" in inf_ge_any,
-       frule_tac x = "ant z" in ale_antisym[of _ "\<infinity>"], assumption+, simp,
-       cut_tac x = "ant za" in inf_ge_any,
-       frule_tac x = "ant za" in ale_antisym[of _ "\<infinity>"], assumption+, simp) 
-done
+lemma amax_mem_m:
+  assumes "x \<in> Z\<^sub>-\<^sub>\<infinity>" and "y \<in> Z\<^sub>-\<^sub>\<infinity>" 
+  shows "amax x y \<in> Z\<^sub>-\<^sub>\<infinity>"
+  using assms aug_minf_def amax_def by simp
 
-lemma amin_commute:"amin x y = amin y x"
-apply (cut_tac ale_linear[of "x" "y"], erule disjE, simp add:amin_def)
-apply (simp add:amin_def)
-done 
+lemma amin_commute:
+  shows "amin x y = amin y x"
+  using amin_def by simp 
 
-lemma amin_mult_pos:"0 < z \<Longrightarrow> amin (z *\<^sub>a x) (z *\<^sub>a y) = z *\<^sub>a amin x y"
-by (simp add:amin_def, simp add:asprod_pos_mono)
+lemma amin_mult_pos:
+  assumes "0 < z" 
+  shows "amin (z *\<^sub>a x) (z *\<^sub>a y) = z *\<^sub>a amin x y"
+  using assms amin_def asprod_pos_mono[of z x y] by simp
 
-lemma amin_amult_pos:"0 < z \<Longrightarrow> 
-         amin ((ant z) * x) ((ant z) * y) = (ant z) * amin x y"
-by (simp add:asprod_amult[THEN sym], simp add:amin_mult_pos)
+lemma amin_amult_pos:
+  assumes "0 < z" 
+  shows "amin ((ant z) * x) ((ant z) * y) = (ant z) * amin x y"
+  using assms asprod_amult amin_mult_pos by simp
 
-lemma times_amin:"\<lbrakk>0 < a; amin (x * (ant a)) (y * (ant a)) \<le> z * (ant a)\<rbrakk> \<Longrightarrow>
-                     amin x y \<le> z"
-by (frule amin_mult_pos[of "a" "x" "y"], simp add:asprod_amult,
-       simp add:amult_commute[of "ant a"], simp add:amult_pos_mono_r)
+lemma times_amin:
+  assumes "0 < a" and "amin (x * (ant a)) (y * (ant a)) \<le> z * (ant a)" 
+  shows "amin x y \<le> z"
+  using assms amult_commute[of x "ant a"] amult_commute[of y "ant a"] amult_commute[of z "ant a"] 
+amin_amult_pos[of a x y] by (simp add: amult_pos_mono_l)
 
-lemma Amin_memTr:"f \<in> {i. i \<le> n} \<rightarrow> Z\<^sub>\<infinity>  \<longrightarrow> Amin n f \<in>  Z\<^sub>\<infinity>" 
-apply (induct_tac n,
-       simp add:Pi_def)
-apply (rule impI,
-       frule_tac func_pre[of "f" _ "Z\<^sub>\<infinity>"],
-       simp, rule amin_mem_i, assumption+,
-       simp add:Pi_def)
-done
+lemma Amin_memTr:
+  shows "f \<in> {i. i \<le> n} \<rightarrow> Z\<^sub>\<infinity> \<longrightarrow> Amin n f \<in>  Z\<^sub>\<infinity>"
+proof(induct n)
+  case 0
+  then show "f \<in> {i. i \<le> 0} \<rightarrow> Z\<^sub>\<infinity> \<longrightarrow> Amin 0 f \<in> Z\<^sub>\<infinity>"
+    using Amin_0[of f] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "f \<in> {i. i \<le> Suc n} \<rightarrow> Z\<^sub>\<infinity> \<longrightarrow> Amin (Suc n) f \<in> Z\<^sub>\<infinity>"
+    using Amin_Suc[of n f] amin_mem_i[of "Amin n f" "f(Suc n)"] func_pre[of f n "Z\<^sub>\<infinity>"]
+    by (simp add: Pi_def)
+qed
 
-lemma Amin_mem:"f \<in> {i. i \<le> n} \<rightarrow>  Z\<^sub>\<infinity> \<Longrightarrow> Amin n f \<in>  Z\<^sub>\<infinity>" 
-apply (simp add:Amin_memTr)
-done
+lemma Amin_mem:
+  assumes "f \<in> {i. i \<le> n} \<rightarrow>  Z\<^sub>\<infinity>" 
+  shows "Amin n f \<in>  Z\<^sub>\<infinity>" 
+  using assms by (simp add:Amin_memTr)
 
-lemma Amax_memTr:"f \<in> {i. i \<le> n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity>  \<longrightarrow> Amax n f \<in>  Z\<^sub>-\<^sub>\<infinity>" 
-apply (induct_tac n,
-       simp add:Pi_def)
-apply (rule impI,
-       frule_tac func_pre[of "f" _ "Z\<^sub>-\<^sub>\<infinity>"],
-       simp, rule amax_mem_m, assumption+,
-       simp add:Pi_def)
-done
+lemma Amax_memTr:
+  shows "f \<in> {i. i \<le> n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity>  \<longrightarrow> Amax n f \<in>  Z\<^sub>-\<^sub>\<infinity>"
+proof(induct n)
+  case 0
+  then show "f \<in> {i. i \<le> 0} \<rightarrow> Z\<^sub>-\<^sub>\<infinity> \<longrightarrow> Amax 0 f \<in> Z\<^sub>-\<^sub>\<infinity>"
+    using Amax_0[of f] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "f \<in> {i. i \<le> Suc n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity>  \<longrightarrow> Amax (Suc n) f \<in> Z\<^sub>-\<^sub>\<infinity>"
+    using Amax_Suc[of n f] amax_mem_m[of "Amax n f" "f(Suc n)"] func_pre[of f n "Z\<^sub>\<infinity>"]
+    by (simp add: Pi_def)
+qed
 
-lemma Amax_mem:"f \<in> {i. i \<le> n} \<rightarrow>  Z\<^sub>-\<^sub>\<infinity> \<Longrightarrow> Amax n f \<in>  Z\<^sub>-\<^sub>\<infinity>" 
-apply (simp add:Amax_memTr)
-done
+lemma Amax_mem:
+  assumes "f \<in> {i. i \<le> n} \<rightarrow>  Z\<^sub>-\<^sub>\<infinity>" 
+  shows "Amax n f \<in>  Z\<^sub>-\<^sub>\<infinity>" 
+  using assms by (simp add:Amax_memTr)
 
-lemma Amin_mem_mem:"\<forall>j\<le> n. f j \<in> Z\<^sub>\<infinity> \<Longrightarrow> Amin n f \<in> Z\<^sub>\<infinity>"
-by (rule Amin_mem, simp)
+lemma Amin_mem_mem:
+  assumes "\<forall>j\<le> n. f j \<in> Z\<^sub>\<infinity>" 
+  shows "Amin n f \<in> Z\<^sub>\<infinity>"
+  using assms by (simp add:Amin_mem)
 
-lemma Amax_mem_mem:"\<forall>j \<le> n. f j \<in> Z\<^sub>-\<^sub>\<infinity> \<Longrightarrow> Amax n f \<in> Z\<^sub>-\<^sub>\<infinity>"
-by (rule Amax_mem, simp)
+lemma Amax_mem_mem:
+  assumes "\<forall>j \<le> n. f j \<in> Z\<^sub>-\<^sub>\<infinity>" 
+  shows "Amax n f \<in> Z\<^sub>-\<^sub>\<infinity>"
+  using assms by (simp add:Amax_mem)
 
-lemma Amin_leTr:"f \<in> {i. i \<le> n} \<rightarrow>  Z\<^sub>\<infinity> \<longrightarrow> (\<forall>j\<in>{i. i \<le> n}. Amin n f \<le> (f j))"
-apply (induct_tac n,
-       rule impI, rule ballI,
-       simp)
-apply (rule impI, rule ballI, 
-       frule func_pre, simp)
-  
-apply (case_tac "j = Suc n", simp, rule amin_le_r) 
-apply (cut_tac x = j and n = n in Nset_pre, simp, assumption,
-       cut_tac x = "Amin n f" and y = "f (Suc n)" in amin_le_l,
-       thin_tac "j \<le> Suc n", simp) 
-apply (frule_tac x = j in spec,
-       thin_tac "\<forall>j\<le>n. Amin n f \<le> f j", simp) 
-done
+lemma Amin_leTr:
+  shows "f \<in> {i. i \<le> n} \<rightarrow>  Z\<^sub>\<infinity> \<longrightarrow> (\<forall>j\<in>{i. i \<le> n}. Amin n f \<le> (f j))" 
+proof(induct n)
+  case 0
+  then show "f \<in> {i. i \<le> 0} \<rightarrow> Z\<^sub>\<infinity> \<longrightarrow> (\<forall>j\<in>{i. i \<le> 0}. Amin 0 f \<le> f j)"
+    using Amin_0[of f] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "f \<in> {i. i \<le> Suc n} \<rightarrow> Z\<^sub>\<infinity> \<longrightarrow> (\<forall>j\<in>{i. i \<le> Suc n}. Amin (Suc n) f \<le> f j)"
+    using Amin_Suc[of n f] func_pre[of f n "Z\<^sub>\<infinity>"]
+    by (metis aless_le_trans amin_le_l amin_le_r le_SucE mem_Collect_eq not_less)
+qed
 
-lemma Amin_le:"\<lbrakk>f \<in> {j. j \<le> n} \<rightarrow>  Z\<^sub>\<infinity>; j \<in> {k. k \<le> n}\<rbrakk> \<Longrightarrow> Amin n f \<le> (f j)"
-apply (simp add:Amin_leTr)
-done
+lemma Amin_le:
+  assumes "f \<in> {j. j \<le> n} \<rightarrow>  Z\<^sub>\<infinity>" and "j \<in> {k. k \<le> n}" 
+  shows "Amin n f \<le> (f j)"
+  using assms by (simp add:Amin_leTr)
 
-lemma Amax_geTr:"f \<in> {j. j \<le> n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity> \<longrightarrow> (\<forall>j\<in>{j. j \<le> n}. (f j) \<le> Amax n f)"
-apply (induct_tac n,
-       rule impI, rule ballI,
-       simp)
-apply (rule impI, rule ballI,
-       frule func_pre, simp,
-       case_tac "j = Suc n", simp, rule amax_ge_r,
-       cut_tac x = j and n = n in Nset_pre, simp, assumption,
-       thin_tac "j \<le> Suc n",
-       simp)
-apply (cut_tac x = "Amax n f" and y = "f (Suc n)" in amax_ge_l,
-       drule_tac x = j in spec, simp)
-done
+lemma Amax_geTr:
+  shows "f \<in> {j. j \<le> n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity> \<longrightarrow> (\<forall>i\<in>{j. j \<le> n}. (f i) \<le> Amax n f)"
+proof(induct n)
+  case 0
+  then show "f \<in> {j. j \<le> 0} \<rightarrow> Z\<^sub>-\<^sub>\<infinity> \<longrightarrow> (\<forall>i\<in>{j. j \<le> 0}. f(i) \<le> Amax 0 f)"
+    using Amin_0[of f] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "f \<in> {j. j \<le> Suc n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity> \<longrightarrow> (\<forall>i\<in>{j. j \<le> Suc n}. f(i) \<le> Amax (Suc n) f)"
+    using Amax_Suc[of n f] func_pre[of f n "Z\<^sub>-\<^sub>\<infinity>"] sledgehammer
+    by (metis ale_trans amax_ge_l amax_ge_r le_SucE mem_Collect_eq)
+qed
 
-lemma Amax_ge:"\<lbrakk>f \<in> {j. j \<le> n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity>; j \<in> {j. j \<le> n}\<rbrakk> \<Longrightarrow> 
-                                                 (f j) \<le> (Amax n f)"
-apply (simp add:Amax_geTr)
-done
+lemma Amax_ge:
+  assumes "f \<in> {j. j \<le> n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity>" and "i \<in> {j. j \<le> n}" 
+  shows "(f i) \<le> (Amax n f)"
+  using assms by (simp add:Amax_geTr)
 
-lemma Amin_mem_le:"\<lbrakk>\<forall>j \<le> n. (f j) \<in>  Z\<^sub>\<infinity>; j \<in> {j. j \<le> n}\<rbrakk> \<Longrightarrow> 
-                                           (Amin n f) \<le> (f j)"
-by (rule Amin_le, simp, simp)
+lemma Amin_mem_le:
+  assumes "\<forall>j \<le> n. (f j) \<in>  Z\<^sub>\<infinity>" and "i \<in> {j. j \<le> n}" 
+  shows "(Amin n f) \<le> (f i)"
+  using assms by (simp add:Amin_le)
 
-lemma Amax_mem_le:"\<lbrakk>\<forall>j \<le> n. (f j) \<in>  Z\<^sub>-\<^sub>\<infinity>; j \<in> {j. j \<le> n}\<rbrakk> \<Longrightarrow> 
-                                           (f j) \<le> (Amax n f)"
-by (rule Amax_ge, simp, simp)
+lemma Amax_mem_le:
+  assumes "\<forall>j \<le> n. (f j) \<in>  Z\<^sub>-\<^sub>\<infinity>" and "i \<in> {j. j \<le> n}" 
+  shows "(f i) \<le> (Amax n f)"
+  using assms by (simp add:Amax_ge)
 
-lemma amin_ge1:"\<lbrakk>(z::ant) \<le> x; z \<le> y \<rbrakk> \<Longrightarrow> z \<le> amin x y"
-by (simp add:amin_def)
+lemma amin_ge1:
+  assumes "(z::ant) \<le> x" and "z \<le> y" 
+  shows "z \<le> amin x y"
+  using assms by (simp add:amin_def)
 
-lemma amin_gt:"\<lbrakk>(z::ant) < x; z < y\<rbrakk> \<Longrightarrow> z < amin x y"
-apply (simp add:less_ant_def, (erule conjE)+,
-       rule conjI, simp add:amin_ge1)
-apply (rule contrapos_pp, simp+,
-       case_tac "x \<le> y", simp add:amin_def, simp add:amin_def)
-done
+lemma amin_gt:
+  assumes "(z::ant) < x" and "z < y" 
+  shows "z < amin x y"
+proof-
+  have f1:"z \<le> amin x y"
+    using assms amin_ge1[of z x y] by simp
+  have "z \<noteq> amin x y"
+    using assms amin_def[of x y] by (simp add: less_ant_def)
+  thus "z < amin x y"
+    using f1 less_ant_def by simp
+qed
 
-lemma Amin_ge1Tr:"(\<forall>j\<le>(Suc n). (f j) \<in> Z\<^sub>\<infinity> \<and> z \<le> (f j)) \<longrightarrow> 
+lemma Amin_ge1Tr:
+  shows "(\<forall>j\<le>(Suc n). (f j) \<in> Z\<^sub>\<infinity> \<and> z \<le> (f j)) \<longrightarrow> 
                                             z \<le> (Amin (Suc n) f)"
-apply (induct_tac n)
- apply (rule impI)
- apply (frule_tac x = 0 in spec,
-        frule_tac x = "Suc 0" in spec,
-        thin_tac "\<forall>j\<le>Suc 0. f j \<in> Z\<^sub>\<infinity> \<and> z \<le> f j", simp, (erule conjE)+,
-        simp add:amin_ge1)
+proof(induct n)
+  case 0
+  then show "(\<forall>j\<le>Suc 0. f j \<in> Z\<^sub>\<infinity> \<and> z \<le> f j) \<longrightarrow> z \<le> Amin (Suc 0) f"
+    using Amin_0[of f] by (simp add: amin_ge1)
+next
+  case (Suc n)
+  from Suc.hyps show "(\<forall>j\<le>Suc (Suc n). f j \<in> Z\<^sub>\<infinity> \<and> z \<le> f j) \<longrightarrow> z \<le> Amin (Suc (Suc n)) f"
+    using Amin_Suc[of "Suc n" f] amin_ge1 by simp
+qed
 
-apply (rule impI,
-       simp,
-       frule_tac a = "Suc (Suc n)" in forall_spec,
-       thin_tac "\<forall>j\<le>Suc (Suc n). f j \<in> Z\<^sub>\<infinity> \<and> z \<le> f j", simp,
-       thin_tac "\<forall>j\<le>Suc (Suc n). f j \<in> Z\<^sub>\<infinity> \<and> z \<le> f j", erule conjE)
- apply (rule amin_ge1, assumption+)
-done
+lemma Amin_ge1:
+  assumes "\<forall>j \<le> (Suc n). f j \<in> Z\<^sub>\<infinity>" and "\<forall>j \<le> (Suc n). z \<le> (f j)" 
+  shows "z \<le> (Amin (Suc n) f)"
+  using assms Amin_ge1Tr[of n f z] by simp
 
-lemma Amin_ge1:"\<lbrakk> \<forall>j \<le> (Suc n). f j \<in> Z\<^sub>\<infinity>; \<forall>j \<le> (Suc n). z \<le> (f j)\<rbrakk> \<Longrightarrow> 
-                             z \<le> (Amin (Suc n) f)"
-apply (simp del:Amin_Suc add:Amin_ge1Tr)
-done
+lemma amin_trans1:
+  assumes "z \<le> x" 
+  shows "amin z y \<le> amin x y"
+  using assms amin_def by auto
 
-lemma amin_trans1:"\<lbrakk>x \<in> Z\<^sub>\<infinity>; y \<in> Z\<^sub>\<infinity>; z \<in> Z\<^sub>\<infinity>; z \<le> x \<rbrakk> \<Longrightarrow> 
-                           amin z y \<le> amin x y"
-apply (case_tac "z \<le> y", simp add:amin_def)
- apply (simp add:amin_def)
- apply (simp only:aneg_le[of "z" "y"], frule aless_imp_le[of "y" "z"],
-        frule ale_trans[of "y" "z" "x"], assumption+, rule impI,
-        frule ale_antisym[of "y" "x"], assumption+) 
-done
+lemma inf_in_aug_inf:
+  shows "\<infinity> \<in> Z\<^sub>\<infinity>"
+  using aug_inf_def minf_neq_inf not_sym[of "-\<infinity>" "\<infinity>"] by auto
 
-lemma inf_in_aug_inf:"\<infinity>  \<in> Z\<^sub>\<infinity>"
-apply (simp add:aug_inf_def, simp add:not_sym)
-done
-
-subsection "Maximum element of a set of ants"
+subsection "The maximum element of a set of ants"
 
 primrec aasc_seq :: "[ant set, ant, nat] \<Rightarrow> ant"
 where
@@ -3370,46 +3369,47 @@ where
 | aasc_seq_Suc : "aasc_seq A a (Suc n) = 
                      (SOME b. ((b \<in> A) \<and> (aasc_seq A a n) < b))"
 
-lemma aasc_seq_mem:"\<lbrakk>a \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk> \<Longrightarrow>
-                            (aasc_seq A a n) \<in> A"
-apply (induct_tac n)
- apply (simp, simp) 
- apply (simp add:aneg_le,
-        frule_tac a = "aasc_seq A a n" in forall_spec, assumption+,
-        thin_tac "\<forall>m. m \<in> A \<longrightarrow> (\<exists>x\<in>A. m < x)",
-        rule someI2_ex, blast, simp)
-done
+lemma aasc_seq_mem:
+  assumes "a \<in> A" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))" 
+  shows "(aasc_seq A a n) \<in> A"
+proof(induct n)
+  case 0
+  then show "aasc_seq A a 0 \<in> A"
+    using aasc_seq_0[of A a] assms(1) by simp
+next
+  case (Suc n)
+  from Suc.hyps show "aasc_seq A a (Suc n) \<in> A"
+  proof-
+    obtain b where "b \<in> A" and "b > aasc_seq A a n"
+      using assms(2) Suc.hyps le_less_linear by auto
+    thus "aasc_seq A a (Suc n) \<in> A" 
+      using aasc_seq_Suc[of A a n] by (metis (no_types, lifting) someI_ex)
+  qed
+qed
 
-lemma aasc_seqn:"\<lbrakk>a \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk> \<Longrightarrow>
-                         (aasc_seq A a n) < (aasc_seq A a (Suc n))"
-apply (frule aasc_seq_mem [of "a" "A" "n"], assumption+,
-       simp add:aneg_le,
-       frule_tac a = "aasc_seq A a n" in forall_spec, assumption+,
-       thin_tac "\<forall>m. m \<in> A \<longrightarrow> (\<exists>x\<in>A. m < x)", rule someI2_ex, blast, simp)
-done
+lemma aasc_seqn:
+  assumes "a \<in> A" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))" 
+  shows "(aasc_seq A a n) < (aasc_seq A a (Suc n))"
+  using assms aasc_seq_mem[of a A n] aasc_seq_Suc[of A a n] by (metis (no_types, lifting) aneg_le someI_ex)
 
-lemma aasc_seqn1:"\<lbrakk>a \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk> \<Longrightarrow>
-                        (aasc_seq A a n) + 1 \<le> (aasc_seq A a (Suc n))"
-by (frule aasc_seqn [of "a" "A" "n"], assumption+, simp) 
+lemma aasc_seqn1:
+  assumes "a \<in> A" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))" 
+  shows "(aasc_seq A a n) + 1 \<le> (aasc_seq A a (Suc n))"
+  using assms aasc_seqn[of a A n] by simp
 
-lemma aubs_ex_n_maxTr:"\<lbrakk>a \<in> A; \<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))\<rbrakk> \<Longrightarrow>
-                                         (a + an n) \<le> (aasc_seq A a n)"
-apply (induct_tac n) 
- apply (simp add:aadd_0_r,
-        frule_tac n = n in aasc_seqn1[of "a" "A"], assumption+,
-        cut_tac x = "a + an n" and y = "aasc_seq A a n" in 
-        aadd_le_mono[of _ _ "1"], assumption, simp,
-        frule_tac i = "a + an n + 1" and j = "aasc_seq A a n + 1" and
-         k = "(SOME b. b \<in> A \<and> aasc_seq A a n < b)" in ale_trans, assumption+)
-apply (simp add:an_Suc,
-       case_tac "a = -\<infinity>",
-       subst ant_1[THEN sym], simp del:ant_1 add:a_zpz an_def,
-       subgoal_tac "a \<in> Z\<^sub>\<infinity>", subgoal_tac "an n \<in> Z\<^sub>\<infinity>", 
-       subgoal_tac "1 \<in> Z\<^sub>\<infinity>", 
-       subst aadd_assoc_i[THEN sym], assumption+)   
-apply (subst ant_1[THEN sym], simp del:ant_1 add:aug_inf_def,
-       (simp add:aug_inf_def an_def)+)
-done  
+lemma aubs_ex_n_maxTr:
+  assumes "a \<in> A" and "\<not> (\<exists>m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))" 
+  shows "(a + an n) \<le> (aasc_seq A a n)"
+proof(induct n)
+  case 0
+  then show "a + an 0 \<le> aasc_seq A a 0"
+    using aasc_seq_0[of A a] an_def Zero_ant_def aadd_0_r by simp
+next
+  case (Suc n)
+  from Suc.hyps show "a + an (Suc n) \<le> aasc_seq A a (Suc n)"
+    using assms aasc_seqn1[of a A n] Suc.hyps an_def an_Suc[of n]
+    by (smt Abs_Ainteg_inverse One_ant_def add_ant_def ant_def ant_inf_in_Ainteg ant_z_in_Ainteg fst_conv le_ant_def snd_conv zag_pl_def)
+qed
 
 lemma aubs_ex_AMax:"\<lbrakk>A \<subseteq> UBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> \<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m)"
 apply (case_tac "A = {-\<infinity>}", simp,
