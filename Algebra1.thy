@@ -3298,7 +3298,7 @@ proof(induct n)
 next
   case (Suc n)
   from Suc.hyps show "f \<in> {j. j \<le> Suc n} \<rightarrow> Z\<^sub>-\<^sub>\<infinity> \<longrightarrow> (\<forall>i\<in>{j. j \<le> Suc n}. f(i) \<le> Amax (Suc n) f)"
-    using Amax_Suc[of n f] func_pre[of f n "Z\<^sub>-\<^sub>\<infinity>"] sledgehammer
+    using Amax_Suc[of n f] func_pre[of f n "Z\<^sub>-\<^sub>\<infinity>"]
     by (metis ale_trans amax_ge_l amax_ge_r le_SucE mem_Collect_eq)
 qed
 
@@ -3411,41 +3411,53 @@ next
     by (smt Abs_Ainteg_inverse One_ant_def add_ant_def ant_def ant_inf_in_Ainteg ant_z_in_Ainteg fst_conv le_ant_def snd_conv zag_pl_def)
 qed
 
-lemma aubs_ex_AMax:"\<lbrakk>A \<subseteq> UBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> \<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m)"
-apply (case_tac "A = {-\<infinity>}", simp,
-      frule not_sub_single[of "A" "-\<infinity>"], assumption+,
-      frule not_sub[of "A" "{-\<infinity>}"],
-      erule exE, erule conjE, simp, rename_tac a, rule ex_ex1I)
-prefer 2
- apply ((erule conjE)+, 
-        frule_tac x = y in bspec, assumption+,
-        thin_tac "\<forall>x\<in>A. x \<le> m",
-        frule_tac x = m in bspec, assumption+,
-        thin_tac "\<forall>x\<in>A. x \<le> y", simp)
-apply (rule contrapos_pp, simp,
-       subgoal_tac "\<exists>w. a = ant w", erule exE,
-       frule_tac a = a and A = A  and n = "nat ((abs w) + (abs z) + 1)" in 
-       aubs_ex_n_maxTr, simp, 
-       frule_tac a = a and n = "nat ((abs w) + (abs z) + 1)" in 
-       aasc_seq_mem[of _ "A"], assumption,
-       thin_tac "\<not> (\<exists>m. m \<in> A \<and> (\<forall>x\<in>A. x \<le> m))",
-       simp add:UBset_def)
-apply (frule_tac c = "aasc_seq A (ant w) (nat (\<bar>w\<bar> + \<bar>z\<bar> + 1))" in 
-       subsetD[of "A" "{x. x \<le> ant z}"], assumption+,
-       simp)
-apply(frule_tac i = "ant w + an (nat (\<bar>w\<bar> + \<bar>z\<bar> + 1))" and 
-       j = "aasc_seq A (ant w) (nat (\<bar>w\<bar> + \<bar>z\<bar> + 1))" and 
-        k = "ant z" in ale_trans, assumption+)
-apply (thin_tac "ant w + an (nat (\<bar>w\<bar> + \<bar>z\<bar> + 1))
-           \<le> aasc_seq A (ant w) (nat (\<bar>w\<bar> + \<bar>z\<bar> + 1))",
-       thin_tac "aasc_seq A (ant w) (nat (\<bar>w\<bar> + \<bar>z\<bar> + 1)) \<in> A",
-       thin_tac "aasc_seq A (ant w) (nat (\<bar>w\<bar> + \<bar>z\<bar> + 1)) \<le> ant z",
-       simp add:an_def a_zpz)
- apply (cut_tac a = a in mem_ant, erule disjE, simp, erule disjE, erule exE,
-        simp, simp add:UBset_def, frule subsetD[of "A" "{x. x \<le> ant z}" "\<infinity>"],
-        assumption+, simp, cut_tac inf_ge_any[of "ant z"], 
-        frule_tac ale_antisym[of "ant z" "\<infinity>"], assumption+, simp)
-done
+lemma aubs_ex_AMax:
+  assumes "A \<subseteq> UBset (ant z)" and "A \<noteq> {}" 
+  shows "\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m)"
+proof-
+  have f1:"\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m)" if "A = {-\<infinity>}"
+    using that by simp
+  have f2:"\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m)" if a1:"A \<noteq> {-\<infinity>}"
+  proof(rule contrapos_pp)
+    show "True"
+      by simp
+    show "\<nexists>!m. m \<in> A \<and> (\<forall>x\<in>A. x \<le> m) \<Longrightarrow> \<not> True"
+    proof-
+      assume a2:"\<not>(\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. x \<le> m))"
+      obtain a where "a \<in> A" and "a \<noteq> -\<infinity>"
+        using assms(2) a1 by auto
+      then have "a \<noteq> \<infinity>"
+        using assms(1) UBset_def[of "ant z"]
+        by (metis Nset_le UBset_def ale_antisym subset_eq z_le_i z_neq_inf)
+      then have "\<exists>w. a = ant w"
+        using mem_ant \<open>a \<noteq> - \<infinity>\<close> by auto
+      then obtain w where "a = ant w"
+        by auto
+      then have "w \<le> z"
+        using assms(1) UBset_def[of "ant z"] ale[of w z] \<open>a \<in> A\<close>  by auto
+      define n where "n = nat(\<bar>w\<bar> + \<bar>z\<bar> + 1)"
+      then have "aasc_seq A a n \<in> A"
+        using a2 aasc_seq_mem[of a A n] \<open>a \<in> A\<close> ale_antisym by auto
+      then have "aasc_seq A a n \<le> ant z"
+        using a2 assms(1) UBset_def[of "ant z"] by auto
+      then have "aasc_seq A a n \<ge> a + an n"
+        using a2 aubs_ex_n_maxTr[of a A n] \<open>a \<in> A\<close> eq_iff by blast
+      then have "aasc_seq A a n \<ge> ant (w + \<bar>w\<bar> + \<bar>z\<bar> + 1)"
+        using that a_zpz an_def \<open>a = ant w\<close> \<open>n = nat(\<bar>w\<bar> + \<bar>z\<bar> + 1)\<close>
+        by (smt Abs_Ainteg_inverse Suc_as_int Suc_n_not_le_n ant_def ant_z_in_Ainteg fst_conv le_ant_def nat_mono snd_conv)
+      then have "aasc_seq A a n \<ge> ant (w + \<bar>w\<bar> + \<bar>z\<bar>) + 1"
+        using ant_1 a_zpz by metis
+      then have "aasc_seq A a n > ant (w + \<bar>w\<bar> + \<bar>z\<bar>)" 
+        using \<open>ant (w + \<bar>w\<bar> + \<bar>z\<bar> + 1) \<le> aasc_seq A a n\<close> aless_le_trans aless_zless discrete by blast
+      then have "aasc_seq A a n > ant z" 
+        using ale_zle[of z "w + \<bar>w\<bar> + \<bar>z\<bar>"] by (smt ale_less_trans)
+      thus "\<not> True"
+        using \<open>aasc_seq A a n \<le> ant z\<close> aneg_le by simp
+    qed
+  qed
+  thus "\<exists>!m. m \<in> A \<and> (\<forall>x\<in>A. x \<le> m)"
+    using f1 f2 by auto
+qed
 
 definition
   AMax :: "ant set \<Rightarrow> ant" where
@@ -3459,86 +3471,84 @@ definition
   rev_o :: "ant \<Rightarrow> ant" where
   "rev_o x = - x"
 
-lemma AMax:"\<lbrakk>A \<subseteq> UBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> 
-                    (AMax A) \<in> A \<and> (\<forall>x\<in>A. x \<le> (AMax A))" 
+lemma AMax:
+  shows "\<lbrakk>A \<subseteq> UBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> (AMax A) \<in> A \<and> (\<forall>x\<in>A. x \<le> (AMax A))"
 apply (simp add:AMax_def) 
 apply (frule aubs_ex_AMax[of "A" "z"], assumption)
 apply (rule theI')
 apply assumption
 done
+(* Again I don't know how to write the lemma above with Isar *)
 
-lemma AMax_mem:"\<lbrakk>A \<subseteq> UBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> (AMax A) \<in> A" 
-apply (simp add:AMax[of "A" "z"])
-done
+lemma AMax_mem:
+  assumes "A \<subseteq> UBset (ant z)" and "A \<noteq> {}" 
+  shows "(AMax A) \<in> A"
+  using assms AMax[of A z] by simp
 
-lemma rev_map_nonempty:"A \<noteq> {} \<Longrightarrow> rev_o ` A \<noteq> {}"
-by (rule contrapos_pp, simp+)
+lemma rev_map_nonempty:
+  assumes "A \<noteq> {}" 
+  shows "rev_o ` A \<noteq> {}"
+  using assms image_def[of "rev_o" A] by auto
 
-lemma rev_map:"rev_o \<in> LBset (ant (-z)) \<rightarrow> UBset (ant z)"
-by  (rule Pi_I, simp add:UBset_def LBset_def rev_o_def,
-     frule_tac x = "ant (-z)" and y = x in ale_minus, simp add:aminus)
+lemma rev_map:
+  shows "rev_o \<in> LBset (ant (-z)) \<rightarrow> UBset (ant z)"
+  using rev_o_def LBset_def[of "ant (-z)"] UBset_def[of "ant z"] aminus a_minus_minus
+  by (metis Pi_I ale_minus mem_Collect_eq)
 
-lemma albs_ex_AMin:"\<lbrakk>A \<subseteq> LBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> \<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x)"
-apply (rule ex_ex1I)
-prefer 2 apply ((erule conjE)+, 
-        frule_tac x = y in bspec, assumption+,
-        thin_tac "\<forall>x\<in>A. m \<le> x",
-        frule_tac x = m in bspec, assumption+,
-        thin_tac "\<forall>x\<in>A. y \<le> x", simp)
-apply (subgoal_tac "- AMax (rev_o ` A) \<in> A \<and> 
-                       (\<forall>x \<in> A. (- AMax (rev_o ` A)) \<le> x)", blast,
-       cut_tac rev_map[of "-z"], simp add:a_minus_minus,
-       frule rev_map_nonempty[of "A"], 
-       frule image_sub[of "rev_o" "LBset (ant z)" "UBset (ant (-z))" "A"],
-       assumption+, frule AMax[of "rev_o ` A" "-z"], assumption+,
-       erule conjE,
-       rule conjI, thin_tac "\<forall>x\<in>rev_o ` A. x \<le> AMax (rev_o ` A)",
-        thin_tac "rev_o \<in> LBset (ant z) \<rightarrow> UBset (ant (- z))", 
-        thin_tac "rev_o ` A \<noteq> {}",
-        thin_tac "rev_o ` A \<subseteq> UBset (ant (- z))")
-apply (simp add:image_def rev_o_def,
-       erule bexE, simp add:a_minus_minus, rule ballI,
-       subgoal_tac "rev_o x \<in> rev_o ` A",
-        frule_tac x = "rev_o x" in bspec, assumption+,
-        thin_tac "\<forall>x\<in>rev_o ` A. x \<le> AMax (rev_o ` A)",
-        thin_tac "rev_o \<in> LBset (ant z) \<rightarrow> UBset (ant (- z))", 
-        thin_tac "rev_o ` A \<noteq> {}",
-        thin_tac "rev_o ` A \<subseteq> UBset (ant (- z))")
-apply (simp add:image_def rev_o_def, erule bexE, simp add:a_minus_minus,
-       frule_tac x = "-x" and y = "-xa" in ale_minus, simp add:a_minus_minus,
-       simp add:image_def, blast)
-done
+lemma albs_ex_AMin:
+  assumes "A \<subseteq> LBset (ant z)" and "A \<noteq> {}" 
+  shows "\<exists>!m. m\<in>A \<and> (\<forall>x\<in>A. m \<le> x)"
+proof-
+  have f1:"rev_o ` A \<subseteq> UBset (ant (-z))"
+    using assms(1) rev_map[of "- z"]  a_minus_minus by auto
+  have f2:"rev_o ` A \<noteq> {}" 
+    using assms(2) rev_map_nonempty[of A] by simp
+  show "\<exists>!n. n\<in>A \<and> (\<forall>x\<in>A. n \<le> x)"
+  proof-
+    obtain m where "m\<in>(rev_o ` A) \<and> (\<forall>x\<in>(rev_o ` A). x \<le> m)"
+      using f1 f2 aubs_ex_AMax[of "rev_o ` A" "-z"] by auto
+    define n where "n = -m"
+    then have f3:"n \<in> A"
+      using \<open>n = -m\<close> \<open>m \<in> rev_o ` A \<and> (\<forall>x\<in>rev_o ` A. x \<le> m)\<close> a_minus_minus rev_o_def by auto
+    then have f4:"\<forall>x\<in>A. n \<le> x"
+      using \<open>n = -m\<close> \<open>m \<in> rev_o ` A \<and> (\<forall>x\<in>rev_o ` A. x \<le> m)\<close>
+      by (metis a_minus_minus ale_minus rev_image_eqI rev_o_def)
+    then have "p = n" if "p \<in> A \<and> (\<forall>x\<in>A. p \<le> x)"
+      using that f3 f4 by simp
+    thus "\<exists>!n. n\<in>A \<and> (\<forall>x\<in>A. n \<le> x)"
+      using f3 f4 by auto
+  qed
+qed
 
-lemma AMin:"\<lbrakk>A \<subseteq> LBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> 
-                    (AMin A) \<in> A \<and> (\<forall>x\<in>A. (AMin A) \<le> x)" 
+lemma AMin:
+  shows "\<lbrakk>A \<subseteq> LBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> (AMin A) \<in> A \<and> (\<forall>x\<in>A. (AMin A) \<le> x)" 
 apply (simp add:AMin_def) 
 apply (frule albs_ex_AMin[of "A" "z"], assumption)
 apply (rule theI')
 apply assumption
-done
+  done
+(* Again same problem with Isar above *)
 
-lemma AMin_mem:"\<lbrakk>A \<subseteq> LBset (ant z); A \<noteq> {}\<rbrakk> \<Longrightarrow> (AMin A) \<in> A"
-apply (simp add:AMin) 
-done
+lemma AMin_mem:
+  assumes "A \<subseteq> LBset (ant z)" and "A \<noteq> {}" 
+  shows "(AMin A) \<in> A"
+  using assms AMin[of A z] by simp
 
 primrec ASum :: "(nat \<Rightarrow> ant) \<Rightarrow> nat \<Rightarrow> ant"
 where
   ASum_0: "ASum f 0 = f 0"
 | ASum_Suc: "ASum f (Suc n) = (ASum f n) + (f (Suc n))"
 
-lemma age_plus:"\<lbrakk>0 \<le> (a::ant); 0 \<le> b; a + b \<le> c\<rbrakk> \<Longrightarrow> a \<le> c"
-apply (frule aadd_le_mono[of "0" "b" "a"]) 
-apply (simp add:aadd_commute[of "b" "a"] aadd_0_l)
-done
+lemma age_plus:
+  assumes "0 \<le> (b::ant)" and "a + b \<le> c" 
+  shows "a \<le> c"
+  using assms aadd_le_mono[of 0 b a] aadd_commute[of b a] aadd_0_l[of a] by simp
 
-lemma age_diff_le:"\<lbrakk>(a::ant) \<le> c; 0 \<le> b\<rbrakk> \<Longrightarrow> a - b \<le> c"
-apply (frule ale_minus[of "0" "b"], thin_tac "0 \<le> b", simp)
-apply (frule aadd_le_mono[of "a" "c" "-b"])
-apply (frule aadd_le_mono[of "-b" "0" "c"])
-apply (thin_tac "a \<le> c", thin_tac "- b \<le> 0",
-       simp add:aadd_commute[of "-b" "c"] aadd_0_l)
-apply (simp add:diff_ant_def) 
-done
+lemma age_diff_le:
+  assumes "(a::ant) \<le> c" and "0 \<le> b" 
+  shows "a - b \<le> c"
+  using assms age_plus[of b "a - b" c] aadd_minus_inv[of b] aadd_0_r[of a]
+  by (metis aadd_commute aadd_le_mono ale_neg diff_ant_def dual_order.trans)
 
 lemma adiff_le_adiff:"a \<le> (a'::ant) \<Longrightarrow> a - b \<le> a' - b"
 apply (simp add:diff_ant_def)
