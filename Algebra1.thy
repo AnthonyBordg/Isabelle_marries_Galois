@@ -2537,8 +2537,9 @@ lemma aadd_0_l:
   by (metis aadd_0_r aadd_commute)
 
 lemma aadd_minus_inv: 
-  shows "(- x) + x = (0::ant)"  (** \<longrightarrow> aadd_minus_l **)
+  shows "(- x) + x = (0::ant)"
   using mem_ant[of x] Zero_ant_def add_ant_def aminus a_zpz a_minus_minus a_mpi aadd_commute by auto
+(* To do: rename aadd_minus_inv with aadd_minus_l *)
 
 lemma aadd_minus_r: 
   shows "x + (- x) = (0::ant)"
@@ -3550,115 +3551,97 @@ lemma age_diff_le:
   using assms age_plus[of b "a - b" c] aadd_minus_inv[of b] aadd_0_r[of a]
   by (metis aadd_commute aadd_le_mono ale_neg diff_ant_def dual_order.trans)
 
-lemma adiff_le_adiff:"a \<le> (a'::ant) \<Longrightarrow> a - b \<le> a' - b"
-apply (simp add:diff_ant_def)
-apply (rule aadd_le_mono[of "a" "a'" "-b"], assumption+)
-done
+lemma adiff_le_adiff:
+  assumes "a \<le> (a'::ant)" 
+  shows "a - b \<le> a' - b"
+  using assms aadd_le_mono[of a a' "-b"] by (simp add: diff_ant_def)
 
-lemma aplus_le_aminus:"\<lbrakk> a \<in>  Z\<^sub>-\<^sub>\<infinity>; b \<in>  Z\<^sub>-\<^sub>\<infinity>; c \<in>  Z\<^sub>-\<^sub>\<infinity>; -b \<in>  Z\<^sub>-\<^sub>\<infinity>\<rbrakk> \<Longrightarrow> 
-                 ((a + b) \<le> (c::ant)) = (a \<le> c - b)"
-apply (rule iffI)
-apply (frule aadd_le_mono[of "a + b" "c" "-b"])
- apply (simp add:aadd_assoc_m, simp add:aadd_minus_r)
- apply (simp add:aadd_0_r, simp add:diff_ant_def)
- 
-apply (frule aadd_le_mono[of "a" "c - b" "b"])
-apply (simp add:diff_ant_def)
-apply (simp add:aadd_assoc_m) 
-apply (simp add:aadd_minus_inv[of "b"])
-apply (simp add: aadd_0_r)
-done
+lemma aplus_le_aminus:
+  assumes "a \<in>  Z\<^sub>-\<^sub>\<infinity>" and "b \<in>  Z\<^sub>-\<^sub>\<infinity>" and "c \<in>  Z\<^sub>-\<^sub>\<infinity>" and "-b \<in>  Z\<^sub>-\<^sub>\<infinity>" 
+  shows "((a + b) \<le> (c::ant)) = (a \<le> c - b)"
+  using assms aadd_le_mono[of "a + b" "c" "-b"] diff_ant_def aadd_minus_r aadd_le_mono[of a "c - b" b]
+aadd_minus_inv aadd_0_r aadd_assoc_m by auto
 
-section "Cardinality of sets"
+section "The cardinality of sets"
 
 text {* cardinality is defined for the finite sets only *}
 
-lemma card_eq:"A = B \<Longrightarrow> card A = card B"
- apply simp
- done
+lemma card_eq:
+  shows "A = B \<Longrightarrow> card A = card B"
+  by simp
 
-lemma card0:"card {} = 0"
-by  simp
+lemma card0:
+  shows "card {} = 0"
+  by  simp
 
-lemma card_nonzero:"\<lbrakk>finite A; card A \<noteq> 0\<rbrakk> \<Longrightarrow> A \<noteq> {}"
-by (rule contrapos_pp, simp+)
+lemma card_nonzero:
+  assumes "finite A" and "card A \<noteq> 0" 
+  shows "A \<noteq> {}"
+  using assms by simp
 
-lemma finite1:"finite {a}"
-by  simp
+lemma finite1:
+  shows "finite {a}"
+  by  simp
 
-lemma card1:"card {a} = 1"
-by simp
+lemma card1:
+  shows "card {a} = 1"
+  by simp
 
-lemma nonempty_card_pos:"\<lbrakk>finite A; A \<noteq> {}\<rbrakk> \<Longrightarrow> 0 < card A"
-apply (frule nonempty_ex [of "A"], erule exE,
-       frule_tac a = x and A = A in singleton_sub) 
-apply (frule_tac B = A and A = "{x}" in card_mono, assumption+,
-       simp add:card1)
-done
+lemma nonempty_card_pos:
+  assumes "finite A" and "A \<noteq> {}" 
+  shows "0 < card A"
+  using assms by auto
 
-lemma nonempty_card_pos1:"\<lbrakk>finite A; A \<noteq> {}\<rbrakk> \<Longrightarrow> Suc 0 \<le> card A"
-apply (frule nonempty_card_pos[of "A"], assumption+)
-apply (rule Suc_leI[of "0" "card A"], assumption)
-done
+lemma nonempty_card_pos1:
+  assumes "finite A" and "A \<noteq> {}" 
+  shows "Suc 0 \<le> card A"
+  using assms nonempty_card_pos[of A] by simp
 
-lemma card1_tr0:"\<lbrakk> finite A; card A = Suc 0; a \<in> A \<rbrakk> \<Longrightarrow> {a} = A"
-apply (cut_tac card1[of "a"])
-apply (rule card_seteq[of "A" "{a}"], assumption)
-apply (rule singleton_sub[of "a" "A"], assumption)
-apply simp
-done
+lemma card1_tr0:
+  assumes "finite A" and "card A = Suc 0" and "a \<in> A" 
+  shows "{a} = A"
+  using assms card1[of a] card_seteq[of A "{a}"] by simp
 
-lemma card1_tr1:"(constmap {0::nat} {x}) \<in> {0} \<rightarrow> {x} \<and>
-                       surj_to (constmap {0::nat} {x}) {0} {x}"
- apply (rule conjI, simp add:constmap_def Pi_def,
-       simp add:surj_to_def image_def constmap_def)
- done
+lemma card1_tr1:
+  shows "(constmap {0::nat} {x}) \<in> {0} \<rightarrow> {x} \<and> surj_to (constmap {0::nat} {x}) {0} {x}"
+  using constmap_def  by (simp add: \<open>constmap {0} {x} = (\<lambda>xa\<in>{0}. SOME y. y \<in> {x})\<close> surj_to_def)
 
-lemma card1_Tr2:"\<lbrakk>finite A; card A = Suc 0\<rbrakk> \<Longrightarrow> 
-                  \<exists>f. f \<in> {0::nat} \<rightarrow> A \<and> surj_to f {0} A"
-apply (frule card_nonzero[of "A"], simp)
-apply (cut_tac nonempty_ex[of "A"], erule exE)
- apply (frule_tac a = x in card1_tr0[of "A"], assumption+)
- apply (rotate_tac -1, frule sym, thin_tac "{x} = A", simp)
- apply (cut_tac x = x in card1_tr1, blast, simp)
-done
+lemma card1_Tr2:
+  assumes "finite A" and "card A = Suc 0" 
+  shows "\<exists>f. f \<in> {0::nat} \<rightarrow> A \<and> surj_to f {0} A"
+proof-
+  obtain a where "a \<in> A"
+    using assms card_nonzero[of A] by auto
+  then have "{a} = A"
+    using assms card1_tr0[of A a] by simp
+  thus "\<exists>f. f \<in> {0::nat} \<rightarrow> A \<and> surj_to f {0} A"
+    using card1_tr1[of a] by auto
+qed
  
-lemma card2:"\<lbrakk> finite A; a \<in> A; b \<in> A; a \<noteq> b \<rbrakk> \<Longrightarrow> Suc (Suc 0) \<le> card A"
-apply (cut_tac card1[of "a"])
- apply (frule singleton_sub[of "b" "A"])
- apply (frule finite_subset[of "{b}" "A"], assumption)
- apply (frule card_insert_disjoint[of "{b}" "a"])
- apply simp
- apply (simp only:card1)
- apply (frule insert_sub[of "{b}" "A" "a"], assumption+)
-   apply (frule card_mono [of "A" "{a, b}"], assumption) 
-   apply simp
-done
+lemma card2:
+  assumes "finite A" and "a \<in> A" and "b \<in> A" and "a \<noteq> b" 
+  shows "Suc (Suc 0) \<le> card A"
+  using assms card_mono[of A "{a, b}"] by simp
 
-lemma card2_inc_two:"\<lbrakk>0 < (n::nat); x \<in> {j. j \<le> n}\<rbrakk> \<Longrightarrow>
-                                  \<exists>y \<in> {j. j \<le> n}. x \<noteq> y"
-apply (rule contrapos_pp, simp+)
- apply (frule_tac m = 0 and n = n in Suc_leI) apply (
-        frule_tac a = "Suc 0" in forall_spec, assumption) 
- apply (frule_tac a = 0 in forall_spec)
- apply (rule less_imp_le, assumption)
- apply simp
-done
+lemma card2_inc_two:
+  assumes "0 < (n::nat)" and "x \<in> {j. j \<le> n}" 
+  shows "\<exists>y \<in> {j. j \<le> n}. x \<noteq> y"
+  using assms by auto
 
+lemma Nset2_prep1:
+  assumes "finite A" and "card A = Suc (Suc n)" 
+  shows "\<exists>x. x\<in>A"
+  using assms card_nonzero[of A] nonempty_ex[of A] by simp
 
-lemma Nset2_prep1:"\<lbrakk>finite A; card A = Suc (Suc n) \<rbrakk> \<Longrightarrow> \<exists>x. x\<in>A" 
-apply (frule card_nonzero[of "A"])
-apply simp
-apply (simp add:nonempty_ex)
-done
+lemma ex_least_set:
+  assumes "A = {H. finite H \<and> P H}" and "H \<in> A" 
+  shows "\<exists>K \<in> A. (LEAST j. j \<in> (card ` A)) =  card K"
+  using assms image_def[of "card" A] by (metis (mono_tags, lifting) LeastI imageE image_eqI)
 
-lemma ex_least_set:"\<lbrakk>A = {H. finite H \<and> P H}; H \<in> A\<rbrakk> \<Longrightarrow> 
-                       \<exists>K \<in> A. (LEAST j. j \<in> (card ` A)) =  card K" 
-(* proof by L. C. Paulson *)
-by (simp add:image_def, rule LeastI, rule_tac x = "H" in exI, simp)
-
-lemma Nset2_prep2:"x \<in> A \<Longrightarrow> A - {x} \<union> {x} = A"
-by auto
+lemma Nset2_prep2:
+  assumes "x \<in> A" 
+  shows "A - {x} \<union> {x} = A"
+  using assms by auto
 
 lemma Nset2_finiteTr:"\<forall>A. (finite A \<and>(card A = Suc n) \<longrightarrow> 
      (\<exists>f. f \<in> {i. i \<le> n} \<rightarrow> A \<and> surj_to f {i. i \<le> n} A))"
@@ -3681,27 +3664,41 @@ apply (frule_tac f = f and n = n and A = "A - {x}" and
         frule_tac x = x and A = A in Nset2_prep2, simp, blast)
 done
 
-lemma Nset2_finite:"\<lbrakk> finite A; card A = Suc n\<rbrakk> \<Longrightarrow>
-                       \<exists>f. f \<in> {i. i \<le> n} \<rightarrow> A \<and> surj_to f {i. i \<le> n} A "
-by (simp add:Nset2_finiteTr)
+lemma Nset2_finite:
+  assumes "finite A" and "card A = Suc n" 
+  shows "\<exists>f. f \<in> {i. i \<le> n} \<rightarrow> A \<and> surj_to f {i. i \<le> n} A"
+  using assms by (simp add:Nset2_finiteTr)
 
-lemma Nset2finite_inj_tr0:"j \<in> {i. i \<le> (n::nat)} \<Longrightarrow>
-                                     card ({i. i \<le> n} - {j}) = n"
-by simp
+lemma Nset2finite_inj_tr0:
+  assumes "j \<in> {i. i \<le> (n::nat)}" 
+  shows "card ({i. i \<le> n} - {j}) = n"
+  using assms by simp
 
+lemma Nset2finite_inj_tr1:
+  assumes "i \<le> (n::nat)" and "j \<le> n" and "f i = f j" and "i \<noteq> j" 
+  shows "f ` ({k. k \<le> n} - {j}) = f ` {k. k \<le> n}"
+proof
+  show "f ` ({k. k \<le> n} - {j}) \<subseteq> f ` {k. k \<le> n}"
+    using assms subsetI image_def[of f] by auto
+  show "f ` {k. k \<le> n} \<subseteq> f ` ({k. k \<le> n} - {j})"
+  proof
+    fix y
+    assume a1:"y \<in> f ` {k. k \<le> n}"
+    then obtain x where "f (x) = y" and "x \<le> n"
+      using image_def[of f "{k. k \<le> n}"] by auto
+    then have "y \<in> f ` ({k. k \<le> n} - {j})" if "x = j"
+      using a1 assms(1) assms(3) assms(4) image_def[of f "{k. k \<le> n} - {j}"]
+      by (metis (mono_tags, lifting) in_diff mem_Collect_eq)
+    thus "y \<in> f ` ({k. k \<le> n} - {j})"
+      using \<open>f x = y\<close> \<open>x \<le> n\<close> by auto
+  qed
+qed
 
-lemma Nset2finite_inj_tr1:"\<lbrakk> i \<le> (n::nat); j \<le> n; f i = f j; i \<noteq> j \<rbrakk> \<Longrightarrow> 
-       f ` ({i. i \<le> n} - {j}) = f ` {i. i \<le> n}"
-apply (simp add:image_def, rule equalityI, rule subsetI, simp add:CollectI,
-       erule bexE, case_tac "xa = j", frule sym, thin_tac "f i = f j", 
-       simp, blast)
-apply (rule subsetI, simp, erule exE, case_tac "xa = j", frule sym, 
-       thin_tac "f i = f j", blast, blast)
-done
-
-lemma Nset2finite_inj:"\<lbrakk>finite A; card A = Suc n; surj_to f {i. i \<le> n} A \<rbrakk> \<Longrightarrow> 
-        inj_on f {i. i \<le> n}"
-by (metis card_Collect_le_nat eq_card_imp_inj_on finite_Collect_le_nat surj_to_def)
+lemma Nset2finite_inj:
+  assumes "finite A" and "card A = Suc n" and "surj_to f {i. i \<le> n} A" 
+  shows "inj_on f {i. i \<le> n}"
+  using assms inj_on_def[of f "{i. i \<le> n}"]
+  by (metis card_Collect_le_nat eq_card_imp_inj_on finite_Collect_le_nat surj_to_def)
 
 definition
   zmax :: "[int, int] \<Rightarrow> int" where
@@ -3712,86 +3709,68 @@ where
   Zmax_0 : "Zmax 0 f = f 0"
 | Zmax_Suc :"Zmax (Suc n) f = zmax (Zmax n f) (f (Suc n))"
 
-lemma Zmax_memTr:"f \<in> {i. i \<le> (n::nat)} \<rightarrow> (UNIV::int set) \<longrightarrow>
-                                       Zmax n f \<in> f ` {i. i \<le> n}"
-apply (induct_tac n)
- apply simp 
-apply (rule impI)
- apply (frule func_pre)
- apply (frule_tac f = f and A = "{i. i \<le> Suc n}" and B = UNIV and 
-        ?A1.0 = "{i. i \<le> n}" and ?A2.0 = "{i. i \<le> Suc n}" in im_set_mono)
- apply (rule subsetI, simp, simp, simp)
- apply (case_tac "(Zmax n f) \<le> (f (Suc n))", simp add:zmax_def)
- apply (simp add:zmax_def)
- apply (simp add:subsetD)
-done
+lemma Zmax_memTr:
+  shows "f \<in> {i. i \<le> (n::nat)} \<rightarrow> (UNIV::int set) \<longrightarrow> Zmax n f \<in> f ` {i. i \<le> n}"
+proof(induct n)
+  case 0
+  then show "f \<in> {i. i \<le> 0} \<rightarrow> UNIV \<longrightarrow> Zmax 0 f \<in> f ` {i. i \<le> 0}"
+    using Zmax_0[of f] image_def[of f "{i. i \<le> 0}"] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "f \<in> {i. i \<le> Suc n} \<rightarrow> UNIV \<longrightarrow> Zmax (Suc n) f \<in> f ` {i. i \<le> Suc n}"
+    using Zmax_Suc[of n f] image_def[of f "{i. i \<le> Suc n}"] zmax_def by auto
+qed
 
-lemma zmax_ge_r:"y \<le> zmax x y"
-by (simp add:zmax_def)
+lemma zmax_ge_r:
+  shows "y \<le> zmax x y"
+  by (simp add:zmax_def)
 
-lemma zmax_ge_l:"x \<le> zmax x y"
-by (simp add:zmax_def)
+lemma zmax_ge_l:
+  shows "x \<le> zmax x y"
+  by (simp add:zmax_def)
 
-lemma Zmax_geTr:"f \<in> {j. j \<le> (n::nat)} \<rightarrow> (UNIV::int set) \<longrightarrow> 
-                    (\<forall>j\<in>{j. j \<le> n}. (f j) \<le> Zmax n f)"
-apply (induct_tac n,
-       rule impI, rule ballI,
-       simp)
-apply (rule impI, rule ballI,
-       frule func_pre, simp,
-       case_tac "j = Suc n", simp, rule zmax_ge_r,
-       cut_tac x = j and n = n in Nset_pre, simp, assumption,
-       thin_tac "j \<le> Suc n",
-       simp)
+lemma Zmax_geTr:
+  shows "f \<in> {j. j \<le> (n::nat)} \<rightarrow> (UNIV::int set) \<longrightarrow> (\<forall>j\<in>{j. j \<le> n}. (f j) \<le> Zmax n f)"
+proof(induct n)
+  case 0
+  then show "f \<in> {j. j \<le> 0} \<rightarrow> UNIV \<longrightarrow> (\<forall>j\<in>{j. j \<le> 0}. f j \<le> Zmax 0 f)"
+    using Zmax_0[of f] by simp
+next
+  case (Suc n)
+  from Suc.hyps show "f \<in> {j. j \<le> Suc n} \<rightarrow> UNIV \<longrightarrow> (\<forall>j\<in>{j. j \<le> Suc n}. f j \<le> Zmax (Suc n) f)"
+    using Zmax_Suc[of n f] zmax_def le_Suc_eq by auto
+qed
 
-apply (cut_tac x = "Zmax n f" and y = "f (Suc n)" in zmax_ge_l,
-       frule_tac x = j in spec,
-       thin_tac "\<forall>j\<le>n. f j \<le> Zmax n f")
-apply  simp 
-done
+lemma Zmax_plus1:
+  assumes "f \<in> {j. j \<le> (n::nat)} \<rightarrow> (UNIV::int set)" 
+  shows "((Zmax n f) + 1) \<notin> f ` {j. j \<le> n}"
+  using assms Zmax_geTr[of f n] image_def[of f "{j. j \<le> n}"] by auto
 
-lemma Zmax_plus1:"f \<in> {j. j \<le> (n::nat)} \<rightarrow> (UNIV::int set) \<Longrightarrow>
-           ((Zmax n f) + 1) \<notin> f ` {j. j \<le> n}"
-apply (cut_tac  Zmax_geTr[of f n])
-apply (rule contrapos_pp, simp+)
-apply (simp add:image_def, erule exE, erule conjE)
-apply (frule_tac a = x in forall_spec, assumption,
-       thin_tac "\<forall>j\<le>n. f j \<le> Zmax n f")
-apply (frule sym, thin_tac "Zmax n f + 1 = f x", simp)
-done
+lemma infinite_Univ_int:
+  shows "\<not> (finite (UNIV :: int set))"
+  by (simp add: infinite_UNIV_int)
 
-lemma infinite_Univ_int:"\<not> (finite (UNIV :: int set))"
-apply (rule contrapos_pp, simp+)
-apply (subgoal_tac "(0::int) \<in> UNIV")
-prefer 2 apply simp
-apply (frule nonempty[of "(0::int)" UNIV])
-apply (frule_tac nonempty_card_pos[of UNIV], assumption)
-apply (frule Nset2_finite[of UNIV "(card UNIV) - Suc 0"],
-       rule Suc_pred[THEN sym, of "card UNIV"],simp)
-apply (erule exE, erule conjE)
-apply (frule_tac f = f in 
-            Nset2finite_inj[of UNIV "(card UNIV) - Suc 0"],
-       rule Suc_pred[THEN sym, of "card UNIV"], simp, assumption)
-apply (frule_tac f = f and n = "card UNIV - Suc 0" in Zmax_plus1)
-apply (simp add:surj_to_def)
-done
+lemma image_Nsetn_card_pos:
+  shows "0 < card (f ` {i. i \<le> (n::nat)})"
+  using nonempty_card_pos[of "f ` {i. i\<le> n}"] by auto
 
-lemma image_Nsetn_card_pos:" 0 < card (f ` {i. i \<le> (n::nat)})"
-apply(rule nonempty_card_pos)
-apply auto
-done
+lemma card_image_Nsetn_Suc:
+  assumes "f \<in> {j. j \<le> Suc n} \<rightarrow> B" and "f (Suc n) \<notin> f ` {j. j \<le> n}"  
+  shows "card (f ` {j. j \<le> Suc n}) - Suc 0 = Suc (card (f ` {j. j \<le> n}) - Suc 0)"
+  using assms image_Nset_Suc[of f n] image_Nsetn_card_pos[of f n] by simp
 
-lemma card_image_Nsetn_Suc
-:"\<lbrakk>f \<in> {j. j \<le> Suc n} \<rightarrow> B; 
-      f (Suc n) \<notin> f ` {j. j \<le> n}\<rbrakk>  \<Longrightarrow> 
-       card (f ` {j. j \<le> Suc n}) - Suc 0 = 
-                     Suc (card (f ` {j. j \<le> n}) - Suc 0)"
-apply (simp add:image_Nset_Suc)
-apply (cut_tac image_Nsetn_card_pos[of f n], simp)
-done
-
-lemma slide_surj:"i < (j::nat) \<Longrightarrow> 
-                    surj_to (slide i) {l. l \<le> (j - i)} (nset i j)"
+lemma slide_surj:
+  assumes "i < (j::nat)" 
+  shows "surj_to (slide i) {l. l \<le> (j - i)} (nset i j)"
+proof-
+  have f1:"k - i \<in> {l. l \<le> j - i}" if "k \<in> nset i j"
+    using that nset_def by auto
+  have f2:"slide i (k - i) = k" if "k \<in> nset i j"
+    using that assms slide_def[of i] nset_def[of i j] by simp
+  then have "k \<in> nset i j \<Longrightarrow> k \<in> (slide i) ` {l. l \<le> (j - i)}"
+    using f1 f2 image_def[of "slide i" "{l. l \<le> j - i}"] by auto
+  then have "(nset i j) \<subseteq> (slide i) ` {l. l \<le> (j - i)}"
+    using subsetI[of "nset i j" "(slide i) ` {l. l \<le> j - i}"]
 proof -
  assume p1:"i < j"
  from p1 show ?thesis
