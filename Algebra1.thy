@@ -3763,300 +3763,179 @@ lemma slide_surj:
   assumes "i < (j::nat)" 
   shows "surj_to (slide i) {l. l \<le> (j - i)} (nset i j)"
 proof-
-  have f1:"k - i \<in> {l. l \<le> j - i}" if "k \<in> nset i j"
+  have f1:"(slide i) ` {l. l \<le> j - i} \<subseteq> nset i j"
+    using assms slide_def[of i] image_def[of "slide i" "{l. l \<le> j - i}"] nset_def[of i j] by auto
+  have f2:"k - i \<in> {l. l \<le> j - i}" if "k \<in> nset i j"
     using that nset_def by auto
-  have f2:"slide i (k - i) = k" if "k \<in> nset i j"
+  have f3:"slide i (k - i) = k" if "k \<ge> i"
     using that assms slide_def[of i] nset_def[of i j] by simp
-  then have "k \<in> nset i j \<Longrightarrow> k \<in> (slide i) ` {l. l \<le> (j - i)}"
-    using f1 f2 image_def[of "slide i" "{l. l \<le> j - i}"] by auto
-  then have "(nset i j) \<subseteq> (slide i) ` {l. l \<le> (j - i)}"
-    using subsetI[of "nset i j" "(slide i) ` {l. l \<le> j - i}"]
-proof -
- assume p1:"i < j"
- from p1 show ?thesis
-  apply (simp add:surj_to_def image_def)
-  apply (rule equalityI,
-         rule subsetI, simp, erule exE, simp add:slide_def nset_def,
-         frule less_imp_le [of i j], erule conjE,
-         thin_tac "i < j", frule add_le_mono [of _ "j - i" "i" "i"],
-         simp+, rule subsetI, simp)
- apply (simp add:nset_def slide_def, erule conjE, 
-        frule_tac m = x and n = j and l = i in diff_le_mono,
-        subgoal_tac "x = i + (x - i)", blast, simp)
- done
+  have f4:"\<forall>k. k \<in> (nset i j) \<longrightarrow> k \<in> (slide i) ` {l. l \<le> (j - i)}"
+    using f2 f3 slide_def[of i] image_def[of "slide i" "{l. l \<le> j - i}"]
+    by (smt add_diff_cancel_left' diff_le_mono le_Suc_ex mem_Collect_eq nset_def)
+  thus "surj_to (slide i) {l. l \<le> (j - i)} (nset i j)"
+    using f1 f4 by (simp add: surj_to_def equalityI subsetI)
 qed
 
-lemma slide_inj:"i < j \<Longrightarrow> inj_on (slide i) {k. k \<le> (j - i)}"
-apply (simp add:inj_on_def, (rule allI)+)
-apply (rule impI, rule allI, rule impI, rule impI)
-apply (simp add:slide_def)
-done
+lemma slide_inj: 
+  shows "inj_on (slide i) {k. k \<le> n}"
+  using slide_def by (simp add: inj_on_def)
 
-lemma card_nset:"i < (j :: nat) \<Longrightarrow> card (nset i j) = Suc (j - i)"
-apply (frule slide_inj [of "i" "j"])
-apply (frule card_image [of "slide i" "{k. k \<le> (j - i)}"])
-apply (simp, frule slide_surj [of "i" "j"], simp add:surj_to_def)
-done
+lemma card_nset:
+  assumes "i < (j :: nat)" 
+  shows "card (nset i j) = Suc (j - i)"
+  using assms slide_inj[of i "j - i"] slide_surj[of i j] card_image[of "slide i" "{k. k \<le> j - i}"]
+  by (simp add: surj_to_def)
 
-lemma sliden_hom:"i < j \<Longrightarrow> (sliden i) \<in> nset i j \<rightarrow>  {k. k \<le> (j - i)}"
-by (simp add:Pi_def, rule allI, rule impI, simp add:sliden_def,
-       simp add:nset_def, erule conjE, simp add:diff_le_mono)
+lemma sliden_hom:
+  assumes "i < j" 
+  shows "(sliden i) \<in> nset i j \<rightarrow>  {k. k \<le> (j - i)}"
+  using assms sliden_def[of i] nset_def[of i j] diff_le_mono by simp
 
-lemma slide_sliden:"(sliden i) (slide i k) = k"
-by (simp add:sliden_def slide_def)
+lemma slide_sliden:
+  shows "(sliden i) (slide i k) = k"
+  by (simp add:sliden_def slide_def)
 
-lemma sliden_surj:"i < j \<Longrightarrow>  surj_to (sliden i) (nset i j) {k. k \<le> (j - i)}"
-apply (simp add:surj_to_def image_def, rule equalityI)
-apply (rule subsetI, simp, erule bexE, simp add:nset_def sliden_def,
-       erule conjE, rule_tac m = xa in diff_le_mono[of _ "j" "i"], 
-       assumption+)
-apply (rule subsetI, simp add:nset_def sliden_def,
-       frule_tac i = x in add_le_mono[of _ "j - i" "i" "i"], simp,
-       simp, subgoal_tac "i \<le> x + i", subgoal_tac "x = (x + i) - i",
-       blast) apply simp+
-done
- 
-lemma sliden_inj: "i < j \<Longrightarrow>  inj_on (sliden i) (nset i j)"
- apply (simp add:inj_on_def, (rule ballI)+, rule impI, simp add:sliden_def)
- apply (simp add:nset_def, (erule conjE)+,  
-        subgoal_tac "(x - i = y - i) = (x = y)", blast)
- apply (rule eq_diff_iff, assumption+)
-done
+lemma sliden_surj:
+  assumes "i < j" 
+  shows "surj_to (sliden i) (nset i j) {k. k \<le> (j - i)}"
+proof-
+  have f1:"(sliden i) ` (nset i j) \<subseteq> {k. k \<le> j - i}"
+    using subsetI nset_def[of i j] sliden_def[of i] image_def[of "sliden i" "nset i j"] diff_le_mono
+    by auto
+  have f2:"{k. k \<le> j - i} \<subseteq> (sliden i) ` (nset i j)"
+  proof
+    fix x
+    assume a1:"x \<in> {k. k \<le> j - i}"
+    then have "(sliden i) (x + i) = x"
+      using sliden_def[of i] by simp
+    have "x + i \<in> (nset i j)"
+      using assms a1 nset_def[of i j] by simp
+    thus "x \<in> (sliden i) ` nset i j"
+      using image_def[of "sliden i" "nset i j"] \<open>sliden i (x + i) = x\<close> by fastforce
+  qed
+  thus ?thesis
+    using f1 f2 by (simp add: surj_to_def)
+qed
+
+lemma sliden_inj: 
+  shows "inj_on (sliden i) (nset i j)"
+  using sliden_def[of i] nset_def[of i j] eq_diff_iff[of i] by (simp add: inj_on_def)
 
 definition
   transpos :: "[nat, nat] \<Rightarrow> (nat \<Rightarrow> nat)" where
   "transpos i j = (\<lambda>k. if k = i then j else if k = j then i else k)" 
 
-lemma transpos_id:"\<lbrakk> i \<le> n; j \<le> n; i \<noteq> j ; x \<in> {k. k \<le> n} - {i, j} \<rbrakk>
-  \<Longrightarrow> transpos i j x = x"
-proof -
- assume p1:"i \<le> n" and p2:"j \<le> n" and p3:" i \<noteq> j" and 
- p4:"x \<in> {k. k \<le> n} - {i, j}"
- from p1 and p2 and p3 and p4 show ?thesis
-  apply (simp add:transpos_def)
- done
-qed
+lemma transpos_id:
+  assumes "i \<le> n" and "j \<le> n" and "x \<in> {k. k \<le> n} - {i, j}"
+  shows "transpos i j x = x"
+  using assms transpos_def[of i j] by simp
 
+lemma transpos_id_1:
+  assumes "x \<noteq> i" and "x \<noteq> j" 
+  shows "transpos i j x = x"
+  using assms transpos_def[of i j] by simp
 
-lemma transpos_id_1:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j; x \<le> n; x \<noteq> i; x \<noteq> j\<rbrakk> \<Longrightarrow> 
-                       transpos i j x = x" 
-proof -
- assume p1:"i \<le> n" and p2:"j \<le> n" and p3:"i \<noteq> j" and p4:"x \<le> n" and p5:"x \<noteq> i" and p6:"x \<noteq> j"
- from p1 and p2 and p3 and p4 and p5 and p6 show ?thesis
- apply (simp add:transpos_def)
-done
-qed
+lemma transpos_id_2:
+  assumes "i \<le> n" 
+  shows "transpos i n (Suc n) = Suc n"
+  using assms transpos_def[of i n] by simp
 
-lemma transpos_id_2:"i \<le> n \<Longrightarrow> transpos i n (Suc n) = Suc n"
-by (simp add:transpos_def)
+lemma transpos_ij_1:
+  shows "transpos i j i = j"
+  by (simp add:transpos_def)
 
-lemma transpos_ij_1:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j \<rbrakk> \<Longrightarrow>
-                        transpos i j i = j"
-by (simp add:transpos_def)
+lemma transpos_ij_2:
+  shows "transpos i j j = i"
+  by (simp add:transpos_def)
 
-lemma transpos_ij_2:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j\<rbrakk> \<Longrightarrow> transpos i j j = i"
-by (simp add:transpos_def)
+lemma transpos_hom:
+  assumes "i \<le> n" and "j \<le> n" 
+  shows "(transpos i j)  \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n}"
+  using assms transpos_def[of i j] by simp
 
-lemma transpos_hom:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j\<rbrakk> \<Longrightarrow> 
-                          (transpos i j)  \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n}" 
-apply (simp add:Pi_def, rule allI, rule impI)
-apply (case_tac "x = i", simp add:transpos_def)
- apply (case_tac "x = j", simp add:transpos_def,
-        subst transpos_id, assumption+, simp, assumption)
-done
+lemma transpos_mem:
+  assumes "i \<le> n" and "j \<le> n" and "l \<le> n" 
+  shows "(transpos i j l) \<le> n"
+  using assms transpos_def[of i j] by simp
 
-lemma transpos_mem:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j; l \<le> n\<rbrakk> \<Longrightarrow> 
-                           (transpos i j l) \<le> n"
-apply (frule transpos_hom [of "i" "n" "j"], assumption+,
-       cut_tac funcset_mem[of "transpos i j" "{i. i \<le> n}" "{i. i \<le> n}" l])
-apply simp+
-done
+lemma transpos_inj:
+  assumes "i \<le> n" and "j \<le> n"
+  shows "inj_on (transpos i j) {i. i \<le> n}"
+  using assms transpos_def[of i j] inj_on_def[of "transpos i j" "{i. i \<le> n}"] by simp
 
-lemma transpos_inj:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j\<rbrakk> 
-                          \<Longrightarrow> inj_on (transpos i j) {i. i \<le> n}"
- apply (simp add:inj_on_def, (rule allI, rule impI)+, rule impI,
-        case_tac "x = i", case_tac "y = j",
-        simp add:transpos_def)
- apply (simp add:transpos_ij_1, rule contrapos_pp, simp+,
-        frule_tac x = y in transpos_id [of "i" "n" "j"], assumption+,
-        simp+)
- apply (case_tac "x = j", simp, 
-        simp add:transpos_ij_2, rule contrapos_pp, simp+,
-        frule_tac x = y in transpos_id [of "i" "n" "j"], assumption+,
-        simp, rule contrapos_pp, simp+, simp add:transpos_ij_1)
- apply (simp, simp add:transpos_ij_1, simp add:transpos_id_1, 
-        thin_tac "x = transpos i j y",
-        case_tac "y = i", simp add:transpos_ij_1,
-        case_tac "y = j", simp add:transpos_ij_2)
- apply (simp add:transpos_id_1)
-done
+lemma transpos_surjec:
+  assumes "i \<le> n" and "j \<le> n" 
+  shows "surj_to (transpos i j) {i. i \<le> n} {i. i \<le> n}"
+  using assms transpos_hom[of i n j] transpos_def[of i j] surj_to_def by fastforce
 
-lemma transpos_surjec:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j\<rbrakk> 
-                          \<Longrightarrow> surj_to (transpos i j) {i. i \<le> n} {i. i \<le> n}"
-apply (simp add:surj_to_def,
-       frule transpos_hom [of "i" "n" "j"], assumption+,
-       frule image_sub [of "transpos i j" "{i. i \<le> n}" "{i. i \<le> n}" 
-       "{i. i \<le> n}"], simp)
-apply (frule transpos_inj [of "i" "n" "j"], assumption+,
-       frule card_image [of "transpos i j" "{i. i \<le> n}"],
-       simp add:card_seteq)
-done
+lemma comp_transpos:
+  assumes "i \<le> n" and "j \<le> n"
+  shows "\<forall>k \<le> n. (compose {i. i \<le> n} (transpos i j) (transpos i j)) k = k"
+  using assms transpos_def by (simp add: compose_def)
+ 
+lemma comp_transpos_1:
+  assumes "i \<le> n" and "j \<le> n" and  "k \<le> n" 
+  shows "(transpos i j) ((transpos i j) k) = k"
+  using assms comp_transpos[of i n j] by (simp add: compose_def)
 
-lemma comp_transpos:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j\<rbrakk> \<Longrightarrow>
-      \<forall>k \<le> n. (compose {i. i \<le> n} (transpos i j) (transpos i j)) k = k"
-proof -
- assume p1:"i \<le> n" and p2:"j \<le> n" and p3:"i \<noteq> j"
- from p1 and p2 and p3 show ?thesis
-  apply (simp add:compose_def)
-  apply (rule allI)
-  apply (case_tac "k = i") apply simp
-  apply (subst transpos_ij_1, assumption+) 
-  apply (rule transpos_ij_2, simp+) 
-  apply (rule impI)  
-apply (case_tac "k = j") apply simp
-  apply (subst transpos_ij_2, simp+) 
-  apply (rule transpos_ij_1, simp+) 
-  apply (subst transpos_id_1, assumption+) 
-  apply (simp add:transpos_mem) 
-  apply (simp add:transpos_id_1)+
- done
+lemma cmp_transpos1:
+  assumes "i \<le> n" and "j \<le> n" and  "k \<le> n" 
+  shows "(cmp (transpos i j) (transpos i j)) k = k"
+  using assms comp_transpos_1[of i n j k] by (simp add: cmp_def)
+
+lemma cmp_transpos:
+  assumes "i < n" and "a \<le> (Suc n)" 
+  shows "(cmp (transpos i n) (cmp (transpos n (Suc n)) (transpos i n))) a = transpos i (Suc n) a"
+  using assms transpos_def by (simp add: cmp_def)
+
+lemma im_Nset_Suc:
+  shows "insert (f (Suc n)) (f ` {i. i \<le> n}) = f ` {i. i\<le>(Suc n)}"
+  using insert_def image_def Nset_Suc by simp
+
+lemma Nset_injTr0:
+  assumes "f \<in> {i. i \<le> (Suc n)} \<rightarrow> {i. i \<le> (Suc n)}" and "inj_on f {i. i \<le> (Suc n)}" and "f (Suc n) = Suc n" 
+  shows "f \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n} \<and> inj_on f {i. i \<le> n}"
+proof
+  show "f \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n}"
+    using assms inj_on_def[of f "{i. i \<le> (Suc n)}"] by (simp add: Pi_def le_Suc_eq)
+  show "inj_on f {i. i \<le> n}"
+    using assms(2) by (simp add: inj_on_def)
 qed
  
-lemma comp_transpos_1:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j; k \<le> n\<rbrakk> \<Longrightarrow>
-                           (transpos i j) ((transpos i j) k) = k"
-apply (frule comp_transpos [of "i" "n" "j"], assumption+)
- apply (simp add:compose_def)
-done
+lemma inj_surj:
+  assumes "f \<in> {i. i \<le> (n::nat)} \<rightarrow> {i. i \<le> n}" and "inj_on f {i. i \<le> (n::nat)}" 
+  shows "f ` {i. i \<le> n} = {i. i \<le> n}"
+  using assms image_sub [of "f" "{i. i \<le> n}" "{i. i \<le> n}" "{i. i \<le> n}"]
+card_image [of "f" "{i. i \<le> n}"] by (simp add: card_seteq)
 
-lemma cmp_transpos1:"\<lbrakk>i \<le> n; j \<le> n; i \<noteq> j; k \<le> n\<rbrakk> \<Longrightarrow> 
-                      (cmp (transpos i j) (transpos i j)) k = k"
-apply (simp add:cmp_def)
-apply (simp add:comp_transpos_1)
-done
+lemma Nset_pre_mem:
+  assumes "f:{i. i\<le>(Suc n)} \<rightarrow>{i. i\<le>(Suc n)}" and "inj_on f {i. i \<le> (Suc n)}" and "f (Suc n) = Suc n"
+and  "k \<le> n" 
+  shows "f k \<in> {i. i \<le> n}"
+  using assms Nset_injTr0[of f n] by auto
 
-lemma cmp_transpos:"\<lbrakk>i \<le> n; i \<noteq> n; a \<le> (Suc n)\<rbrakk> \<Longrightarrow>
-  (cmp (transpos i n) (cmp (transpos n (Suc n)) (transpos i n))) a =
-               transpos i (Suc n) a"
-apply (simp add:cmp_def)
-apply (case_tac "a = Suc n", simp)
-apply (simp add:transpos_id_2)
-apply (cut_tac transpos_ij_2[of n "Suc n" "Suc n"], simp,
-       cut_tac transpos_ij_2[of i "Suc n" "Suc n"], simp,
-       cut_tac transpos_ij_2[of i n n], simp+)
-apply (frule le_imp_less_or_eq[of a "Suc n"],
-       thin_tac "a \<le> Suc n", simp,
-       frule Suc_less_le[of a n])
-apply (case_tac "a = n", simp,
-       cut_tac transpos_ij_2[of i n n], simp, 
-       cut_tac transpos_id[of i "Suc n" "Suc n" n], simp,
-       cut_tac transpos_id[of n "Suc n" "Suc n" i], simp,
-       cut_tac transpos_ij_1[of i n n], simp+)
-apply (case_tac "a = i", simp,
-       cut_tac transpos_ij_1[of i n n], simp+,
-       cut_tac transpos_ij_1[of i "Suc n" "Suc n"], simp,
-       cut_tac transpos_ij_1[of n "Suc n" "Suc n"], simp, 
-       cut_tac transpos_id[of i "Suc n" n "Suc n"], simp+)
-apply (cut_tac transpos_id[of i n n a], simp,
-       cut_tac transpos_id[of i "Suc n" "Suc n" a], simp,
-        cut_tac transpos_id[of n "Suc n" "Suc n" a], simp+)
-done
+lemma Nset_injTr1:
+  assumes "\<forall>l \<le> (Suc n). f l \<le> (Suc n)" and "inj_on f {i. i \<le> (Suc n)}" and "f (Suc n) = Suc n" 
+  shows "inj_on f {i. i \<le> n}"
+  using assms Nset_injTr0[of f n] by simp
 
-lemma im_Nset_Suc:"insert (f (Suc n)) (f ` {i. i \<le> n}) = f ` {i. i\<le>(Suc n)}"
-apply (simp add:image_def)
- apply (rule equalityI)
- apply (rule subsetI, simp)
- apply (erule disjE, blast) 
- apply (erule exE, erule conjE, simp,
-        frule_tac i = xa and j = n and k = "Suc n" in le_trans,
-        simp)
- apply blast
- apply (rule subsetI, simp, erule exE, erule conjE)
- apply (case_tac "xa = Suc n", simp)
- apply (metis le_SucE)
-done
+lemma Nset_injTr2:
+  assumes "\<forall>l\<le> (Suc n). f l \<le> (Suc n)" and "inj_on f {i. i \<le> (Suc n)}" and "f (Suc n) = Suc n" 
+  shows "\<forall>l \<le> n. f l \<le> n"
+  using assms Nset_pre_mem[of f n] by simp
 
-lemma Nset_injTr0:"\<lbrakk>f \<in> {i. i \<le> (Suc n)} \<rightarrow> {i. i \<le> (Suc n)}; 
-      inj_on f {i. i \<le> (Suc n)}; f (Suc n) = Suc n\<rbrakk> \<Longrightarrow>
-      f \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n} \<and> inj_on f {i. i \<le> n}"
-proof -
- assume p1:"f \<in> {i. i \<le> (Suc n)} \<rightarrow> {i. i \<le> (Suc n)}" and
-        p2:"inj_on f {i. i \<le> (Suc n)}" and p3:"f (Suc n) = Suc n"
- have q1:"\<forall>l \<le> n. l \<le> (Suc n)" apply simp  done
- from p1 and p2 and p3 and q1 have q2:"f \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n}"
-  apply (simp add:Pi_def)
-  apply (rule allI, rule impI)
-  apply (frule_tac a = x in forall_spec, simp,
-         thin_tac "\<forall>x\<le>Suc n. f x \<le> Suc n")
-  apply (rule contrapos_pp, simp+)
-  apply (simp add:nat_not_le_less)
-  apply (frule_tac n = "f x" in Suc_leI[of n], thin_tac "n < (f x)")
-  apply (frule_tac m = "Suc n" and n = "f x" in le_antisym, assumption)
-  apply(unfold inj_on_def)
-  apply (frule_tac x = x in bspec, simp,
-       thin_tac "\<forall>x\<in>{i. i \<le> Suc n}. \<forall>y\<in>{i. i \<le> Suc n}. f x = f y \<longrightarrow> x = y",
-        frule_tac x = "Suc n" in bspec, simp)
-  apply (frule_tac r = "f (Suc n)" and s = "Suc n" and t = "f x" in trans,
-         assumption,
-         thin_tac "f (Suc n) = Suc n", thin_tac "Suc n = f x",
-         thin_tac "\<forall>y\<in>{i. i \<le> Suc n}. f x = f y \<longrightarrow> x = y")
-  apply simp
-done
-from p2 have q3:"inj_on f {i. i \<le> n}"
-   apply (simp add:inj_on_def) done
-from q2 and q3 show ?thesis apply simp done
-qed
- 
-lemma inj_surj:"\<lbrakk>f \<in> {i. i \<le> (n::nat)} \<rightarrow> {i. i \<le> n}; 
-                inj_on f {i. i \<le> (n::nat)}\<rbrakk> \<Longrightarrow> f ` {i. i \<le> n} = {i. i \<le> n}"
-proof -
- assume p1:"f \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n}" and p2:"inj_on f {i. i \<le> n}"
- have q1:"0 < Suc 0" apply simp done
- from p1 and p2 and q1 show ?thesis
- apply simp
- apply (frule image_sub [of "f" "{i. i \<le> n}" "{i. i \<le> n}" "{i. i \<le> n}"])
- apply simp+ 
- apply (cut_tac card_image [of "f" "{i. i \<le> n}"])
- apply (simp add:card_seteq) apply assumption
- done
-qed
+lemma TR_inj_inj:
+  assumes "\<forall>l\<le> (Suc n). f l \<le> (Suc n)" and "inj_on f {l. l \<le> (Suc n)}" and "i \<le> (Suc n)" and "j \<le> (Suc n)" 
+  shows "inj_on (compose {i. i \<le> (Suc n)} (transpos i j) f) {i. i \<le> (Suc n)}"
+  using assms transpos_inj[of i "Suc n" j] comp_inj[of f "{l. l \<le> (Suc n)}" "{l. l \<le> (Suc n)}" "transpos i j" "{l. l \<le> (Suc n)}"]
+  by (simp add: transpos_mem)
 
-lemma Nset_pre_mem:"\<lbrakk>f:{i. i\<le>(Suc n)} \<rightarrow>{i. i\<le>(Suc n)}; 
-      inj_on f {i. i\<le>(Suc n)}; f (Suc n) = Suc n; k \<le> n\<rbrakk> \<Longrightarrow> f k \<in> {i. i\<le>n}"
-apply (frule Nset_injTr0[of f n], assumption+, erule conjE)
-apply (frule_tac x = k in funcset_mem[of f "{i. i \<le> n}" "{i. i \<le> n}"],
-       simp, assumption)
-done
-
-lemma Nset_injTr1:"\<lbrakk> \<forall>l \<le>(Suc n). f l \<le> (Suc n); inj_on f {i. i \<le> (Suc n)};
-                    f (Suc n) = Suc n \<rbrakk> \<Longrightarrow> inj_on f {i. i \<le> n}"
-by (cut_tac Nset_injTr0[of f n], simp, simp)
-
-lemma Nset_injTr2:"\<lbrakk>\<forall>l\<le> (Suc n). f l \<le> (Suc n); inj_on f {i. i \<le> (Suc n)}; 
-                    f (Suc n) = Suc n\<rbrakk> \<Longrightarrow> \<forall>l \<le> n. f l \<le> n"
-apply (rule allI, rule impI)
-apply (cut_tac k = l in Nset_pre_mem[of f n])
- apply (simp+)
-done
-
-lemma TR_inj_inj:"\<lbrakk>\<forall>l\<le> (Suc n). f l \<le> (Suc n); inj_on f {i. i \<le> (Suc n)};
-                    i \<le> (Suc n); j \<le> (Suc n); i < j \<rbrakk> \<Longrightarrow>
-      inj_on (compose {i. i \<le> (Suc n)} (transpos i j) f) {i. i \<le> (Suc n)}"
-apply (frule transpos_inj[of i "Suc n" j], assumption+,
-       simp )
-apply (rule  comp_inj [of f "{i. i \<le> (Suc n)}" "{i. i \<le> (Suc n)}"
-             "transpos i j" "{i. i \<le> (Suc n)}"])
- apply (simp, assumption,
-        rule transpos_hom[of i "Suc n" j], simp+)
-done
-
-lemma enumeration:"\<lbrakk>f \<in> {i. i \<le> (n::nat)} \<rightarrow> {i. i \<le> m}; inj_on f {i. i \<le> n}\<rbrakk>
-                     \<Longrightarrow>  n \<le> m"
-apply (frule image_sub[of f "{i. i \<le> n}" "{i. i \<le> m}" "{i. i \<le> n}"])
- apply simp
-apply (frule card_image[of f "{i. i \<le> n}"])
-apply(drule card_mono[OF finite_Collect_le_nat])
-apply simp
-done
+lemma enumeration:
+  assumes "f \<in> {i. i \<le> (n::nat)} \<rightarrow> {i. i \<le> m}" and "inj_on f {i. i \<le> n}"
+  shows "n \<le> m"
+  using assms card_image[of f "{i. i \<le> n}"] card_mono[OF finite_Collect_le_nat] 
+image_sub[of f "{i. i \<le> n}" "{i. i \<le> m}" "{i. i \<le> n}"]
+  by (metis Suc_le_mono card_Collect_le_nat order_refl)
  
 lemma enumerate_1:"\<lbrakk>\<forall>j \<le> (n::nat). f j \<in> A; \<forall>j \<le> (m::nat). g j \<in> A; 
      inj_on f {i. i \<le> n}; inj_on g {j. j \<le> m}; f `{j. j \<le> n} = A; 
