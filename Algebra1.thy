@@ -3937,13 +3937,11 @@ lemma enumeration:
 image_sub[of f "{i. i \<le> n}" "{i. i \<le> m}" "{i. i \<le> n}"]
   by (metis Suc_le_mono card_Collect_le_nat order_refl)
  
-lemma enumerate_1:"\<lbrakk>\<forall>j \<le> (n::nat). f j \<in> A; \<forall>j \<le> (m::nat). g j \<in> A; 
-     inj_on f {i. i \<le> n}; inj_on g {j. j \<le> m}; f `{j. j \<le> n} = A; 
-     g ` {j. j \<le> m} = A \<rbrakk> \<Longrightarrow> n = m"
-apply (frule card_image[of f "{i. i \<le> n}"],
-       frule card_image[of g "{i. i \<le> m}"])
-apply simp
-done
+lemma enumerate_1:
+  assumes "\<forall>j \<le> (n::nat). f j \<in> A" and "\<forall>j \<le> (m::nat). g j \<in> A" and "inj_on f {i. i \<le> n}" 
+and "inj_on g {j. j \<le> m}" and "f `{j. j \<le> n} = A" and "g ` {j. j \<le> m} = A" 
+  shows "n = m"
+  using assms card_image[of f "{i. i \<le> n}"] card_image[of g "{i. i \<le> m}"] by simp
 
 definition
   ninv :: "[nat, (nat \<Rightarrow> nat)] \<Rightarrow> (nat \<Rightarrow> nat)" where
@@ -3976,165 +3974,129 @@ apply (simp add:ninv_def)
   apply (erule conjE, rule sym, assumption)
 done
 
-lemma ninv_inj:"\<lbrakk>f \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n}; inj_on f {i. i \<le> n}\<rbrakk> \<Longrightarrow>
-                                inj_on  (ninv n f) {i. i \<le> n}"
-apply (subst inj_on_def, simp)
- apply ((rule allI, rule impI)+, rule impI)
- apply (frule ninv_hom[of f n], assumption,
-      frule_tac x = x in funcset_mem[of "ninv n f" "{i. i \<le> n}" "{i. i \<le> n}"],      simp,
-      frule_tac x = y in funcset_mem[of "ninv n f" "{i. i \<le> n}" "{i. i \<le> n}"],
-      simp,
-      frule_tac b = x in ninv_r_inv  [of f n], assumption+)
-apply (simp add:ninv_r_inv)
-done
+lemma ninv_inj:
+  assumes "f \<in> {i. i \<le> n} \<rightarrow> {i. i \<le> n}" and "inj_on f {i. i \<le> n}" 
+  shows "inj_on  (ninv n f) {i. i \<le> n}"
+  using assms ninv_def[of n f] inj_on_def[of f "{i. i  \<le> n}"] inj_on_def[of "ninv n f" "{i. i \<le> n}"]
+  by (metis (no_types, lifting) mem_Collect_eq ninv_r_inv)
 
 subsection "Lemmas required in Algebra6.thy"
 
 lemma ge2_zmult_pos:
-  "2 \<le> m \<Longrightarrow> 0 < z \<Longrightarrow> 1 < int m * z"
-proof -
-  assume a1: "0 < z"
-  assume a2: "2 \<le> m"
-  have "int m + - 1 * (int m * z) \<le> 0"
-    using a1 by (simp add: pos_zmult_pos)
-  then show ?thesis
-    using a2 by linarith
-qed
+  assumes "2 \<le> m" and "0 < z" 
+  shows "1 < int m * z"
+  using assms pos_zmult_pos[of "int m" z] by linarith
 
-lemma zmult_pos_mono:"\<lbrakk> (0::int) < w; w * z \<le> w * z'\<rbrakk> \<Longrightarrow> z \<le> z'"
-apply (rule contrapos_pp, simp+) 
-done 
+lemma zmult_pos_mono:
+  assumes "(0::int) < w" and "w * z \<le> w * z'" 
+  shows "z \<le> z'"
+  using assms zdiv_pos_mono_r[of w z z'] by simp
 
 lemma zmult_pos_mono_r:
-         "\<lbrakk>(0::int) < w; z * w \<le> z' * w\<rbrakk> \<Longrightarrow> z \<le> z'"
-apply (simp add:mult.commute)
-done 
+  assumes "(0::int) < w" and "z * w \<le> z' * w" 
+  shows "z \<le> z'"
+  using assms zdiv_pos_mono_l[of w z z'] by simp
 
-lemma an_neq_inf:"an n \<noteq> \<infinity>"
-by (simp add:an_def)
+lemma an_neq_inf:
+  shows "an n \<noteq> \<infinity>"
+  by (simp add:an_def)
 
-lemma an_neq_minf:"an n \<noteq> -\<infinity>"
-by (simp add:an_def)
+lemma an_neq_minf:
+  shows "an n \<noteq> -\<infinity>"
+  by (simp add:an_def)
  
-lemma  aeq_mult:"\<lbrakk>z \<noteq> 0; a = b\<rbrakk> \<Longrightarrow> a * ant z = b * ant z" 
-by simp
+lemma  aeq_mult:
+  assumes "a = b" 
+  shows "a * ant z = b * ant z" 
+  using assms by simp
 
-lemma tna_0[simp]:"tna 0 = 0"
-by (simp add:ant_0[THEN sym] tna_ant)
+lemma tna_0[simp]:
+  shows "tna 0 = 0"
+  using tna_ant ant_0 by metis
 
-lemma ale_nat_le:"(an n \<le> an m) = (n \<le> m)" 
-by (simp add:an_def) 
+lemma ale_nat_le:
+  shows "(an n \<le> an m) = (n \<le> m)" 
+  by (simp add:an_def) 
 
-lemma aless_nat_less:"(an n < an m) = (n < m)" 
-by (simp add:an_def, subst aless_zless[of "int n" "int m"], simp)
+lemma aless_nat_less:
+  shows "(an n < an m) = (n < m)" 
+  by (simp add:an_def, subst aless_zless[of "int n" "int m"], simp)
 
 
-lemma apos_natpos:"\<lbrakk>a \<noteq> \<infinity>; 0 \<le> a\<rbrakk> \<Longrightarrow> 0 \<le> na a"  
-by (cut_tac ale_nat_le[of "0" "na a"], simp add:na_def an_def) 
+lemma apos_natpos:
+  assumes "a \<noteq> \<infinity>" and "0 \<le> a" 
+  shows "0 \<le> na a" 
+  using assms ale_nat_le[of 0 "na a"] na_def an_def by simp
   
-lemma apos_tna_pos:"\<lbrakk>n \<noteq> \<infinity>; 0 \<le> n\<rbrakk> \<Longrightarrow> 0 \<le> tna n"
-by (subst tna_0[THEN sym], 
-       subst ale_zle[THEN sym, of "tna 0" "tna n"],
-       frule apos_neq_minf[of "n"],
-       simp add:ant_tna ant_0)
+lemma apos_tna_pos:
+  assumes "n \<noteq> \<infinity>" and "0 \<le> n" 
+  shows "0 \<le> tna n"
+  using assms tna_def[of n] apos_neq_minf[of n] ant_tna[of n] zpos_apos[of "tna n"] by simp
 
-lemma apos_na_pos:"\<lbrakk>n \<noteq> \<infinity>; 0 \<le> n\<rbrakk> \<Longrightarrow> 0 \<le> na n"
-by (frule apos_tna_pos[of "n"], assumption, 
-        cut_tac tna_0[THEN sym], simp del:tna_0)
+lemma apos_na_pos:
+  assumes "n \<noteq> \<infinity>" and "0 \<le> n" 
+  shows "0 \<le> na n"
+  using assms apos_natpos[of n] by simp
 
-lemma aposs_tna_poss:"\<lbrakk>n \<noteq> \<infinity>; 0 < n\<rbrakk> \<Longrightarrow> 0 < tna n"
-apply (subst tna_0[THEN sym], 
-       subst aless_zless[THEN sym, of "tna 0" "tna n"],
-       frule aless_imp_le[of "0" "n"],
-       frule apos_neq_minf[of "n"],
-       simp add:ant_tna ant_0)
-done
+lemma aposs_tna_poss:
+  assumes "n \<noteq> \<infinity>" and "0 < n" 
+  shows "0 < tna n"
+  using assms tna_0 aless_zless[of "tna 0" "tna n"] ant_tna by (simp add: Zero_ant_def apos_neq_minf)
 
-lemma aposs_na_poss:"\<lbrakk>n \<noteq> \<infinity>; 0 < n\<rbrakk> \<Longrightarrow> 0 < na n"
-apply (frule aless_imp_le[of "0" "n"],
-       simp add:aneg_less[THEN sym, of "0" "n"],
-       simp add:na_def)
-apply (rule aposs_tna_poss, assumption+)
-done
+lemma aposs_na_poss:
+  assumes "n \<noteq> \<infinity>" and "0 < n" 
+  shows "0 < na n"
+  using assms apos_na_pos[of n] na_def by (simp add: aposs_tna_poss)
 
-lemma nat_0_le: "0 \<le> z ==> int (nat z) = z"
-apply simp
-done 
+lemma nat_0_le: 
+  shows "0 \<le> z ==> int (nat z) = z"
+  by simp 
 
-lemma int_eq:"m = n \<Longrightarrow> int m = int n"
-by simp
+lemma int_eq:
+  shows "m = n \<Longrightarrow> int m = int n"
+  by simp
 
-lemma box_equation:"\<lbrakk>a = b; a = c\<rbrakk> \<Longrightarrow> b = c"
-apply simp
-done 
+lemma box_equation:
+  assumes "a = b" and "a = c" 
+  shows "b = c"
+  using assms by simp
 
-lemma aeq_nat_eq:"\<lbrakk>n \<noteq> \<infinity>; 0 \<le> n; m \<noteq> \<infinity>; 0 \<le> m\<rbrakk> \<Longrightarrow> 
-                    (n = m) = (na n = na m)"
-apply (rule iffI, simp)
-apply (cut_tac aneg_less[THEN sym, of "0" "n"],
-       cut_tac aneg_less[THEN sym, of "0" "m"], simp,
-       simp add:na_def,
-       frule apos_neq_minf[of "n"],
-       frule apos_neq_minf[of "m"])
-apply (cut_tac mem_ant[of "m"],
-       cut_tac mem_ant[of "n"], simp,
-      (erule exE)+, simp,
-       simp add:tna_ant,
-       simp only:ant_0[THEN sym],
-       simp only:ale_zle)
-done
+lemma aeq_nat_eq:
+  assumes "n \<noteq> \<infinity>" and "0 \<le> n" and "m \<noteq> \<infinity>" and "0 \<le> m" 
+  shows "(n = m) = (na n = na m)"
+  using assms na_def tna_ant apos_neq_minf[of n] apos_neq_minf[of m] mem_ant[of m] mem_ant[of n]
+  by (metis int_nat_eq not_less zpos_apos)
 
-lemma na_minf:"na (-\<infinity>) = 0"
-apply (simp add:na_def, rule impI,
-       cut_tac minf_less_0, simp)
-done
+lemma na_minf:
+  shows "na (-\<infinity>) = 0"
+  using na_def minf_less_0 by simp
 
-lemma an_na:"\<lbrakk>a \<noteq> \<infinity>; 0 \<le> a\<rbrakk> \<Longrightarrow> an (na a) = a"
-apply (frule apos_tna_pos[of "a"], assumption,
-       frule apos_neq_minf[of "a"],
-       cut_tac mem_ant[of "a"], simp, erule exE,
-       simp, simp add:an_def na_def)
-apply (cut_tac y = 0 and x = "ant z" in aneg_less, simp,
-       simp only:ant_0[THEN sym],
-       simp only:ale_zle, simp add:tna_ant)
-done
+lemma an_na:
+  assumes "a \<noteq> \<infinity>" and "0 \<le> a" 
+  shows "an (na a) = a"
+  using assms apos_neq_minf[of a] na_def[of a]  an_def[of "nat (tna a)"] tna_ant mem_ant[of a]  
+apos_tna_pos by auto
 
-lemma not_na_le_minf:"\<not> (an n \<le> -\<infinity> )"
-apply (rule contrapos_pp, simp+)
-apply (cut_tac minf_le_any[of "an n"], frule ale_antisym[of "an n" "-\<infinity>"],
-       assumption+, simp add:an_def)
-done 
+lemma not_na_le_minf:
+  shows "\<not> (an n \<le> -\<infinity> )"
+  using an_def[of n] minf_le_any[of "an n"] ale_antisym by fastforce 
 
-lemma not_na_less_minf:"\<not> (an n < -\<infinity>)" 
-apply (simp add:aneg_less)
-done 
+lemma not_na_less_minf:
+  shows "\<not> (an n < -\<infinity>)"
+  by (simp add:aneg_less) 
 
-lemma not_na_ge_inf:"\<not> \<infinity> \<le> (an n)"
-apply (simp add:aneg_le, unfold an_def)
-apply (simp add:z_less_i[of "int n"])
-done
+lemma not_na_ge_inf:
+  shows "\<not> \<infinity> \<le> (an n)"
+  using an_def[of n] z_less_i[of "int n"] by (simp add: aneg_le)
 
-lemma an_na_le:"j \<le> an n \<Longrightarrow> na j \<le> n" 
-apply (case_tac "j = -\<infinity>", simp add:na_minf)
-apply (simp add:na_def)
-apply (case_tac "j = \<infinity>", simp, rule impI) 
-apply (cut_tac not_na_ge_inf[of n], simp)
+lemma an_na_le:
+  assumes "j \<le> an n" 
+  shows "na j \<le> n"
+  using assms an_def[of n] na_def[of j] mem_ant[of j] not_na_ge_inf[of n] na_minf tna_ant by force
 
-apply simp 
-apply (rule impI, simp add:aneg_less)
-apply (frule an_na[of j], assumption)
-apply (subgoal_tac "nat (tna j) = na j", simp,
-                   thin_tac "nat (tna j) = na j")
-apply (cut_tac ale_trans[of "an (na j)" j "an n"], thin_tac "j \<le> an n",
-       thin_tac "an (na j) = j", simp add:ale_nat_le[of "na j" n],
-       simp add:ale_refl[of j], assumption)
-apply (thin_tac "an (na j) = j", simp add:na_def,
-       rule impI)
-apply (simp add:aneg_le[THEN sym, of j 0])
-done
-
-lemma aless_neq :"(x::ant) < y \<Longrightarrow> x \<noteq> y"
-by (rule contrapos_pp, simp+)
+lemma aless_neq :
+  shows "(x::ant) < y \<Longrightarrow> x \<noteq> y"
+  by simp
 
 
 chapter "Ordered Set"
