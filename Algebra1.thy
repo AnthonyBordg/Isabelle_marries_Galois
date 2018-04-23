@@ -4131,49 +4131,44 @@ definition
   "a \<prec>\<^bsub>D\<^esub> b \<equiv> a \<preceq>\<^bsub>D\<^esub> b \<and> a \<noteq> b"
 
 
-lemma Order_component:"(E::'a Order) = \<lparr> carrier = carrier E, rel = rel E \<rparr>"
-by simp  (** An ordered set consists of two components **) 
+lemma Order_component:
+  shows "(E::'a Order) = \<lparr> carrier = carrier E, rel = rel E \<rparr>"
+  by simp  (** An ordered set consists of two components **) 
 
-lemma Order_comp_eq:"\<lbrakk>carrier (E::'a Order) = carrier (F::'a Order);
-                      rel E = rel F\<rbrakk> \<Longrightarrow> E = F"
-by simp (* components coincide then ordered sets coincide. *)
+lemma Order_comp_eq:
+  assumes "carrier (E::'a Order) = carrier F" and "rel E = rel F" 
+  shows "E = F"
+  using assms by simp (* If the components of two ordered sets are equal then the ordered sets are equal. *)
 
-lemma (in Order) le_rel:"\<lbrakk>a \<in> carrier D; b \<in> carrier D\<rbrakk> \<Longrightarrow>
-                           (a \<preceq> b) = ((a, b) \<in> rel D)"
-by (simp add:ole_def) 
+lemma (in Order) le_rel:
+  assumes "a \<in> carrier D" and "b \<in> carrier D" 
+  shows "(a \<preceq> b) = ((a, b) \<in> rel D)"
+  by (simp add:ole_def) 
 
 lemma (in Order) less_imp_le:
-      "\<lbrakk>a \<in> carrier D; b \<in> carrier D; a \<prec> b \<rbrakk> \<Longrightarrow> a \<preceq> b"
-by (simp add:oless_def)
+  assumes "a \<in> carrier D" and "b \<in> carrier D" and "a \<prec> b" 
+  shows "a \<preceq> b"
+  using assms by (simp add:oless_def)
 
-lemma (in Order) le_refl:"a \<in> carrier D \<Longrightarrow> a \<preceq> a"
-apply (unfold ole_def) 
-apply (rule refl, assumption)
-done
+lemma (in Order) le_refl:
+  assumes "a \<in> carrier D" 
+  shows "a \<preceq> a"
+  using assms ole_def[of D a a] refl[of a] by simp
 
-lemma (in Order) le_antisym:"\<lbrakk>a \<in> carrier D; b \<in> carrier D; 
-      a \<preceq> b; b \<preceq> a \<rbrakk> \<Longrightarrow> a = b"
-apply (unfold ole_def) 
-apply (rule antisym)
-apply assumption+
-done
+lemma (in Order) le_antisym:
+  assumes "a \<in> carrier D" and "b \<in> carrier D" and "a \<preceq> b" and "b \<preceq> a" 
+  shows "a = b"
+  using assms ole_def[of D] antisym[of a b] by simp
 
-lemma (in Order) le_trans:"\<lbrakk>a \<in> carrier D; b \<in> carrier D; c \<in> carrier D;
-      a \<preceq> b; b \<preceq> c \<rbrakk> \<Longrightarrow> a \<preceq> c" 
-apply (unfold ole_def) 
-apply (rule_tac a = a and b = b and c = c in trans)
-apply assumption+
-done
+lemma (in Order) le_trans:
+  assumes "a \<in> carrier D" and "b \<in> carrier D" and "c \<in> carrier D" and "a \<preceq> b" and "b \<preceq> c" 
+  shows "a \<preceq> c"
+  using assms ole_def[of D] trans[of a b c] by simp
 
-lemma (in Order) less_trans:"\<lbrakk>a \<in> carrier D; b \<in> carrier D; c \<in> carrier D; 
-      a \<prec> b; b \<prec> c \<rbrakk> \<Longrightarrow> a \<prec> c"
-apply (unfold oless_def)
-apply (erule conjE)+
-apply (simp add:le_trans[of a b c])
-apply (rule contrapos_pp, simp+)
-apply (frule_tac le_antisym[of b c], assumption+)
-apply simp
-done
+lemma (in Order) less_trans:
+  assumes "a \<in> carrier D" and "b \<in> carrier D" and "c \<in> carrier D" and "a \<prec> b" and "b \<prec> c" 
+  shows "a \<prec> c"
+  using assms oless_def[of D] le_trans[of a b c] le_antisym[of b c] by auto
 
 lemma (in Order) le_less_trans:"\<lbrakk>a \<in> carrier D; b \<in> carrier D; c \<in> carrier D;
       a \<preceq> b; b \<prec> c \<rbrakk> \<Longrightarrow> a \<prec> c"
