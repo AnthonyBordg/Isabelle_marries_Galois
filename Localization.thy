@@ -110,3 +110,34 @@ proof
       using rel_def \<open>t \<otimes> t' \<otimes> snd y \<in> S\<close> by auto
   qed
 qed
+
+abbreviation eq_class_of_rng_of_frac:: "_ \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<times> 'b) set" (infix "|\<index>" 10)
+  where "r |\<^bsub>rel\<^esub> s \<equiv> {(r', s') \<in> carrier rel. (r, s) .=\<^bsub>rel\<^esub> (r', s')}"
+
+lemma (in eq_obj_rng_of_frac) zero_in_mult_submonoid:
+  assumes "\<zero> \<in> S" and "(r, s) \<in> carrier rel" and "(r', s') \<in> carrier rel"
+  shows "(r |\<^bsub>rel\<^esub> s) = (r' |\<^bsub>rel\<^esub> s')"
+proof
+  show "(r |\<^bsub>rel\<^esub> s) \<subseteq> (r' |\<^bsub>rel\<^esub> s')"
+  proof
+    fix x
+    assume a1:"x \<in> (r |\<^bsub>rel\<^esub> s)"
+    have " \<zero> \<otimes> (s' \<otimes> fst x \<ominus> snd x \<otimes> r') = \<zero>"
+      using l_zero subset rel_def a1
+      by (smt abelian_group.minus_closed assms(3) is_abelian_group l_null mem_Collect_eq mem_Sigma_iff monoid.m_closed monoid_axioms old.prod.case partial_object.select_convs(1) subset_iff surjective_pairing)
+    thus "x \<in> (r' |\<^bsub>rel\<^esub> s')"
+      using assms(1) assms(3) rel_def
+      by (smt SigmaE a1 eq_object.select_convs(1) l_null mem_Collect_eq minus_closed old.prod.case partial_object.select_convs(1) prod.collapse semiring_simprules(3) subset subset_iff)
+  qed
+  show "(r' |\<^bsub>rel\<^esub> s') \<subseteq> (r |\<^bsub>rel\<^esub> s)"
+  proof
+    fix x
+    assume a1:"x \<in> (r' |\<^bsub>rel\<^esub> s')"
+    have " \<zero> \<otimes> (s \<otimes> fst x \<ominus> snd x \<otimes> r) = \<zero>"
+      using l_zero subset rel_def a1
+      by (metis (no_types, lifting) BNF_Def.Collect_case_prodD assms(2) l_null mem_Sigma_iff minus_closed partial_object.select_convs(1) semiring_simprules(3) set_rev_mp)
+    thus "x \<in> (r |\<^bsub>rel\<^esub> s)"
+      using assms(1) assms(2) rel_def
+      by (smt SigmaE a1 eq_object.select_convs(1) l_null mem_Collect_eq minus_closed old.prod.case partial_object.select_convs(1) prod.collapse semiring_simprules(3) subset subset_iff)
+  qed
+qed
