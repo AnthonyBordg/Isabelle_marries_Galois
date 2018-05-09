@@ -111,7 +111,7 @@ proof
   qed
 qed
 
-abbreviation eq_class_of_rng_of_frac:: "_ \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<times> 'b) set" (infix "|\<index>" 10)
+abbreviation eq_class_of_rng_of_frac:: "_ \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> _set" (infix "|\<index>" 10)
   where "r |\<^bsub>rel\<^esub> s \<equiv> {(r', s') \<in> carrier rel. (r, s) .=\<^bsub>rel\<^esub> (r', s')}"
 
 lemma (in eq_obj_rng_of_frac) zero_in_mult_submonoid:
@@ -141,3 +141,27 @@ proof
       by (smt SigmaE a1 eq_object.select_convs(1) l_null mem_Collect_eq minus_closed old.prod.case partial_object.select_convs(1) prod.collapse semiring_simprules(3) subset subset_iff)
   qed
 qed
+
+definition set_eq_class_of_rng_of_frac:: "_ \<Rightarrow> _set" ("set'_class'_of\<index>")
+  where "set_class_of\<^bsub>rel\<^esub> \<equiv> {(r |\<^bsub>rel\<^esub> s)| r s. (r, s) \<in> carrier rel}"
+
+term "set_class_of\<^bsub>rel\<^esub>"
+
+definition (in eq_obj_rng_of_frac) carrier_rng_of_frac:: "_ partial_object"
+  where "carrier_rng_of_frac \<equiv> \<lparr>carrier = set_class_of\<^bsub>rel\<^esub>\<rparr>"
+
+definition (in eq_obj_rng_of_frac) mult_rng_of_frac:: "[_set, _set] \<Rightarrow> _set"
+  where "mult_rng_of_frac X Y \<equiv> 
+let x' = (SOME x. x \<in> X) in 
+let y' = (SOME y. y \<in> Y) in 
+(fst x' \<otimes> fst y')|\<^bsub>rel\<^esub> (snd x' \<otimes> snd y')"
+
+definition (in eq_obj_rng_of_frac) rec_monoid_rng_of_frac:: "_ monoid"
+  where "rec_monoid_rng_of_frac \<equiv>  \<lparr>carrier = set_class_of\<^bsub>rel\<^esub>, mult = mult_rng_of_frac, one = (\<one>|\<^bsub>rel\<^esub> \<one>)\<rparr>"
+
+lemma (in eq_obj_rng_of_frac) monoid_rng_of_frac:
+  shows "monoid (rec_monoid_rng_of_frac)"
+proof
+  show "\<And>x y. x \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow>
+           y \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow> x \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> y \<in> carrier rec_monoid_rng_of_frac"
+    using rec_monoid_rng_of_frac_def
