@@ -111,7 +111,7 @@ proof
   qed
 qed
 
-abbreviation eq_class_of_rng_of_frac:: "_ \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> _set" (infix "|\<index>" 10)
+definition  eq_class_of_rng_of_frac:: "_ \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> _set" (infix "|\<index>" 10)
   where "r |\<^bsub>rel\<^esub> s \<equiv> {(r', s') \<in> carrier rel. (r, s) .=\<^bsub>rel\<^esub> (r', s')}"
 
 lemma (in eq_obj_rng_of_frac) zero_in_mult_submonoid:
@@ -123,10 +123,10 @@ proof
     fix x
     assume a1:"x \<in> (r |\<^bsub>rel\<^esub> s)"
     have " \<zero> \<otimes> (s' \<otimes> fst x \<ominus> snd x \<otimes> r') = \<zero>"
-      using l_zero subset rel_def a1
+      using l_zero subset rel_def a1 eq_class_of_rng_of_frac_def
       by (smt abelian_group.minus_closed assms(3) is_abelian_group l_null mem_Collect_eq mem_Sigma_iff monoid.m_closed monoid_axioms old.prod.case partial_object.select_convs(1) subset_iff surjective_pairing)
     thus "x \<in> (r' |\<^bsub>rel\<^esub> s')"
-      using assms(1) assms(3) rel_def
+      using assms(1) assms(3) rel_def eq_class_of_rng_of_frac_def
       by (smt SigmaE a1 eq_object.select_convs(1) l_null mem_Collect_eq minus_closed old.prod.case partial_object.select_convs(1) prod.collapse semiring_simprules(3) subset subset_iff)
   qed
   show "(r' |\<^bsub>rel\<^esub> s') \<subseteq> (r |\<^bsub>rel\<^esub> s)"
@@ -134,10 +134,10 @@ proof
     fix x
     assume a1:"x \<in> (r' |\<^bsub>rel\<^esub> s')"
     have " \<zero> \<otimes> (s \<otimes> fst x \<ominus> snd x \<otimes> r) = \<zero>"
-      using l_zero subset rel_def a1
+      using l_zero subset rel_def a1 eq_class_of_rng_of_frac_def
       by (metis (no_types, lifting) BNF_Def.Collect_case_prodD assms(2) l_null mem_Sigma_iff minus_closed partial_object.select_convs(1) semiring_simprules(3) set_rev_mp)
     thus "x \<in> (r |\<^bsub>rel\<^esub> s)"
-      using assms(1) assms(2) rel_def
+      using assms(1) assms(2) rel_def eq_class_of_rng_of_frac_def
       by (smt SigmaE a1 eq_object.select_convs(1) l_null mem_Collect_eq minus_closed old.prod.case partial_object.select_convs(1) prod.collapse semiring_simprules(3) subset subset_iff)
   qed
 qed
@@ -147,21 +147,86 @@ definition set_eq_class_of_rng_of_frac:: "_ \<Rightarrow> _set" ("set'_class'_of
 
 term "set_class_of\<^bsub>rel\<^esub>"
 
-definition (in eq_obj_rng_of_frac) carrier_rng_of_frac:: "_ partial_object"
+context eq_obj_rng_of_frac 
+begin
+
+definition carrier_rng_of_frac:: "_ partial_object"
   where "carrier_rng_of_frac \<equiv> \<lparr>carrier = set_class_of\<^bsub>rel\<^esub>\<rparr>"
 
-definition (in eq_obj_rng_of_frac) mult_rng_of_frac:: "[_set, _set] \<Rightarrow> _set"
+definition mult_rng_of_frac:: "[_set, _set] \<Rightarrow> _set"
   where "mult_rng_of_frac X Y \<equiv> 
 let x' = (SOME x. x \<in> X) in 
 let y' = (SOME y. y \<in> Y) in 
 (fst x' \<otimes> fst y')|\<^bsub>rel\<^esub> (snd x' \<otimes> snd y')"
 
-definition (in eq_obj_rng_of_frac) rec_monoid_rng_of_frac:: "_ monoid"
+definition rec_monoid_rng_of_frac:: "_ monoid"
   where "rec_monoid_rng_of_frac \<equiv>  \<lparr>carrier = set_class_of\<^bsub>rel\<^esub>, mult = mult_rng_of_frac, one = (\<one>|\<^bsub>rel\<^esub> \<one>)\<rparr>"
 
-lemma (in eq_obj_rng_of_frac) monoid_rng_of_frac:
+lemma member_class_to_carrier:
+  assumes "x \<in> (r |\<^bsub>rel\<^esub> s)" and "y \<in> (r' |\<^bsub>rel\<^esub> s')"
+  shows "(fst x \<otimes> fst y, snd x \<otimes> snd y) \<in> carrier rel"
+  using assms rel_def eq_class_of_rng_of_frac_def
+  by (metis (no_types, lifting) Product_Type.Collect_case_prodD m_closed mem_Sigma_iff partial_object.select_convs(1) semiring_simprules(3))
+
+lemma member_class_to_member_class:
+  assumes "x \<in> (r |\<^bsub>rel\<^esub> s)" and "y \<in> (r' |\<^bsub>rel\<^esub> s')"
+  shows "(fst x \<otimes> fst y |\<^bsub>rel\<^esub> snd x \<otimes> snd y) \<in> set_class_of\<^bsub>rel\<^esub>"
+  using assms member_class_to_carrier[of x r s y r' s'] set_eq_class_of_rng_of_frac_def[of rel] 
+eq_class_of_rng_of_frac_def 
+  by auto
+
+lemma closed_mult_rng_of_frac :
+  assumes "(r, s) \<in> carrier rel" and "(t, u) \<in> carrier rel"
+  shows "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (t |\<^bsub>rel\<^esub> u) \<in> set_class_of\<^bsub>rel\<^esub>"
+proof-
+  have "(r, s) .=\<^bsub>rel\<^esub> (r, s)"
+    using assms(1) equiv_obj_rng_of_frac equivalence_def[of "rel"] by blast
+  then have "(r, s) \<in> (r |\<^bsub>rel\<^esub> s)"
+    using assms(1)
+    by (simp add: eq_class_of_rng_of_frac_def)
+  then have f1:"\<exists>x. x \<in> (r |\<^bsub>rel\<^esub> s)"
+    by auto
+  have f2:"\<exists>y. y\<in> (t |\<^bsub>rel\<^esub> u)"
+    using assms(2) equiv_obj_rng_of_frac equivalence.refl eq_class_of_rng_of_frac_def by fastforce
+  show "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (t |\<^bsub>rel\<^esub> u) \<in> set_class_of\<^bsub>rel\<^esub>"
+    using f1 f2 rec_monoid_rng_of_frac_def mult_rng_of_frac_def[of "(r |\<^bsub>rel\<^esub> s)" "(t |\<^bsub>rel\<^esub> u)"] 
+set_eq_class_of_rng_of_frac_def[of "rel"] member_class_to_member_class[of x' r s y' t u]
+    by (metis (mono_tags, lifting) mem_Collect_eq member_class_to_carrier monoid.select_convs(1) someI_ex)
+qed
+
+lemma mult_rng_of_frac_fonda:
+  shows "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (r \<otimes> r' |\<^bsub>rel\<^esub> s \<otimes> s')"
+
+lemma member_class_to_assoc:
+  assumes "x \<in> (r |\<^bsub>rel\<^esub> s)" and "y \<in> (t |\<^bsub>rel\<^esub> u)" and "z \<in> (v |\<^bsub>rel\<^esub> w)"
+  shows "((fst x \<otimes> fst y) \<otimes> fst z |\<^bsub>rel\<^esub> (snd x \<otimes> snd y) \<otimes> snd z) = (fst x \<otimes> (fst y \<otimes> fst z) |\<^bsub>rel\<^esub> snd x \<otimes> (snd y \<otimes> snd z))"
+  using assms m_assoc subset rel_def set_rev_mp
+  by (smt BNF_Def.Collect_case_prodD eq_class_of_rng_of_frac_def mem_Sigma_iff partial_object.select_convs(1))
+
+lemma assoc_mult_rng_of_frac:
+  assumes "(r, s) \<in> carrier rel" and "(t, u) \<in> carrier rel" and "(v, w) \<in> carrier rel"
+  shows "((r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (t |\<^bsub>rel\<^esub> u)) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (v |\<^bsub>rel\<^esub> w) =
+         (r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> ((t |\<^bsub>rel\<^esub> u) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (v |\<^bsub>rel\<^esub> w))"
+proof-
+  have f1:"\<exists>x. x \<in> (r |\<^bsub>rel\<^esub> s)"
+    using assms(1) eq_class_of_rng_of_frac_def equiv_obj_rng_of_frac equivalence.refl by fastforce
+  have f2:"\<exists>y. y \<in> (t |\<^bsub>rel\<^esub> u)"
+    using assms(2) eq_class_of_rng_of_frac_def equiv_obj_rng_of_frac equivalence.refl by fastforce
+  have f3:"\<exists>z. z \<in> (v |\<^bsub>rel\<^esub> w)"
+    using assms(3) eq_class_of_rng_of_frac_def equiv_obj_rng_of_frac equivalence.refl by fastforce
+  show ?thesis
+    using f1 f2 f3 assms member_class_to_assoc rec_monoid_rng_of_frac_def 
+mult_rng_of_frac_def[of "(r |\<^bsub>rel\<^esub> s)" "(t |\<^bsub>rel\<^esub> u)"] mult_rng_of_frac_def[of "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (t |\<^bsub>rel\<^esub> u)" "(v |\<^bsub>rel\<^esub> w)"]
+
+lemma monoid_rng_of_frac:
   shows "monoid (rec_monoid_rng_of_frac)"
 proof
   show "\<And>x y. x \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow>
            y \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow> x \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> y \<in> carrier rec_monoid_rng_of_frac"
-    using rec_monoid_rng_of_frac_def
+    using rec_monoid_rng_of_frac_def closed_mult_rng_of_frac
+    by (smt mem_Collect_eq partial_object.select_convs(1) set_eq_class_of_rng_of_frac_def)
+  show "\<And>x y z. x \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow>
+             y \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow>
+             z \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow>
+             x \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> y \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> z =
+             x \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (y \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> z)"
