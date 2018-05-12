@@ -194,8 +194,66 @@ set_eq_class_of_rng_of_frac_def[of "rel"] member_class_to_member_class[of x' r s
     by (metis (mono_tags, lifting) mem_Collect_eq member_class_to_carrier monoid.select_convs(1) someI_ex)
 qed
 
-lemma mult_rng_of_frac_fonda:
+lemma non_empty_class:
+  assumes "(r, s) \<in> carrier rel"
+  shows "(r |\<^bsub>rel\<^esub> s) \<noteq> {}"
+  using assms eq_class_of_rng_of_frac_def equiv_obj_rng_of_frac equivalence.refl by fastforce
+
+lemma mult_rng_of_frac_fondamental_lemma:
+  assumes "(r, s) \<in> carrier rel" and "(r', s') \<in> carrier rel"
   shows "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (r \<otimes> r' |\<^bsub>rel\<^esub> s \<otimes> s')"
+proof-
+  have f1:"(r |\<^bsub>rel\<^esub> s) \<noteq> {}"
+    using assms(1) non_empty_class by auto
+  have "(r' |\<^bsub>rel\<^esub> s') \<noteq> {}"
+    using assms(2) non_empty_class by auto
+  then have "\<exists>x \<in> (r |\<^bsub>rel\<^esub> s). \<exists>x' \<in> (r' |\<^bsub>rel\<^esub> s'). (r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') =
+    (fst x \<otimes> fst x' |\<^bsub>rel\<^esub> snd x \<otimes> snd x')"
+      using f1 rec_monoid_rng_of_frac_def
+      by (metis monoid.select_convs(1) mult_rng_of_frac_def some_in_eq)
+  then obtain x and x' where f2:"x \<in> (r |\<^bsub>rel\<^esub> s)" and f3:"x' \<in> (r' |\<^bsub>rel\<^esub> s')" 
+    and "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (fst x \<otimes> fst x' |\<^bsub>rel\<^esub> snd x \<otimes> snd x')"
+    by blast
+  then have "(r, s) .=\<^bsub>rel\<^esub> (fst x, snd x)"
+    using rel_def
+    by (metis (no_types, lifting) Product_Type.Collect_case_prodD eq_class_of_rng_of_frac_def)
+  then obtain t where f4:"t \<in> S" and f5:"t \<otimes> ((snd x \<otimes> r) \<ominus> (s \<otimes> fst x)) = \<zero>"
+    using rel_def by auto
+  have "(r', s') .=\<^bsub>rel\<^esub> (fst x', snd x')"
+    using rel_def f3
+    by (metis (no_types, lifting) Product_Type.Collect_case_prodD eq_class_of_rng_of_frac_def)
+  then obtain t' where f6:"t' \<in> S" and f7:"t' \<otimes> (snd x' \<otimes> r' \<ominus> s' \<otimes> fst x') = \<zero>"
+    using rel_def by auto
+  have f8:"t \<in> carrier R"
+    using f4 subset set_rev_mp by auto
+  have f9:"snd x \<otimes> r \<in> carrier R" 
+    using subset set_rev_mp f2 assms(1)
+    by (metis (no_types, lifting) BNF_Def.Collect_case_prodD eq_class_of_rng_of_frac_def mem_Sigma_iff partial_object.select_convs(1) rel_def semiring_simprules(3))
+  have f10:"\<ominus> (s \<otimes> fst x) \<in> carrier R"
+    using assms(1) subset set_rev_mp f2
+    by (metis (no_types, lifting) BNF_Def.Collect_case_prodD abelian_group.a_inv_closed eq_class_of_rng_of_frac_def is_abelian_group mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def)
+  then have "t \<otimes> (snd x \<otimes> r) \<ominus> t \<otimes> (s \<otimes> fst x) = \<zero>"
+    using f8 f9 f10 f5 r_distr[of "snd x \<otimes> r" "\<ominus> (s \<otimes> fst x)" t] a_minus_def r_minus[of t "s \<otimes> fst x"]
+    by (smt BNF_Def.Collect_case_prodD assms(1) eq_class_of_rng_of_frac_def f2 mem_Sigma_iff partial_object.select_convs(1) rel_def semiring_simprules(3) subset subset_iff)
+  then have f11:"t \<otimes> (snd x \<otimes> r) = t \<otimes> (s \<otimes> fst x)"
+    by (smt BNF_Def.Collect_case_prodD assms(1) eq_class_of_rng_of_frac_def f2 f8 is_abelian_group mem_Sigma_iff minus_to_eq monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def subset subset_iff)
+  have f12:"t' \<in> carrier R"
+    using f6 subset set_rev_mp by auto
+  have f13:"snd x' \<otimes> r' \<in> carrier R"
+    using assms(2) f3 subset set_rev_mp
+    by (metis (no_types, lifting) Product_Type.Collect_case_prodD eq_class_of_rng_of_frac_def mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def)
+  have f14:"\<ominus> (s' \<otimes> fst x') \<in> carrier R"
+    using assms(2) f3 subset set_rev_mp
+    by (metis (no_types, lifting) BNF_Def.Collect_case_prodD abelian_group.a_inv_closed eq_class_of_rng_of_frac_def is_abelian_group mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def)
+  then have "t' \<otimes> (snd x' \<otimes> r') \<ominus> t' \<otimes> (s' \<otimes> fst x') = \<zero>"
+    using f12 f13 f14 f7 r_distr[of "snd x' \<otimes> r'" "\<ominus> (s' \<otimes> fst x')" t'] a_minus_def r_minus[of t' "s' \<otimes> fst x'"]
+    by (smt BNF_Def.Collect_case_prodD assms(2) eq_class_of_rng_of_frac_def f3 mem_Sigma_iff partial_object.select_convs(1) rel_def semiring_simprules(3) subset subset_iff)
+  then have f15:"t' \<otimes> (snd x' \<otimes> r') = t' \<otimes> (s' \<otimes> fst x')"
+    by (smt BNF_Def.Collect_case_prodD assms(2) eq_class_of_rng_of_frac_def f3 f12 is_abelian_group mem_Sigma_iff minus_to_eq monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def subset subset_iff)
+  have "t' \<otimes> t \<in> S"
+    using f4 f6 m_closed by auto
+  then have "(t' \<otimes> t) \<otimes> ((snd x \<otimes> snd x') \<otimes> (r \<otimes> r') \<ominus> (s \<otimes> s') \<otimes> (fst x \<otimes> fst x')) = \<zero>"
+    using f11 f15 m_assoc m_comm
 
 lemma member_class_to_assoc:
   assumes "x \<in> (r |\<^bsub>rel\<^esub> s)" and "y \<in> (t |\<^bsub>rel\<^esub> u)" and "z \<in> (v |\<^bsub>rel\<^esub> w)"
