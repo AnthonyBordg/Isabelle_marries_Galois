@@ -252,8 +252,47 @@ proof-
     by (smt BNF_Def.Collect_case_prodD assms(2) eq_class_of_rng_of_frac_def f3 f12 is_abelian_group mem_Sigma_iff minus_to_eq monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def subset subset_iff)
   have "t' \<otimes> t \<in> S"
     using f4 f6 m_closed by auto
-  then have "(t' \<otimes> t) \<otimes> ((snd x \<otimes> snd x') \<otimes> (r \<otimes> r') \<ominus> (s \<otimes> s') \<otimes> (fst x \<otimes> fst x')) = \<zero>"
-    using f11 f15 m_assoc m_comm
+  then have f16:"t' \<otimes> t \<in> carrier R"
+    using subset set_rev_mp by auto
+  have f17:"(snd x \<otimes> snd x') \<otimes> (r \<otimes> r') \<in> carrier R"
+    using assms f2 f3
+    by (metis (no_types, lifting) BNF_Def.Collect_case_prodD eq_class_of_rng_of_frac_def mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def subset subset_iff)
+  have f18:"(s \<otimes> s') \<otimes> (fst x \<otimes> fst x') \<in> carrier R"
+    using assms f2 f3
+    by (metis (no_types, lifting) BNF_Def.Collect_case_prodD eq_class_of_rng_of_frac_def mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def subset subset_iff)
+  then have f19:"(t' \<otimes> t) \<otimes> ((snd x \<otimes> snd x') \<otimes> (r \<otimes> r') \<ominus> (s \<otimes> s') \<otimes> (fst x \<otimes> fst x')) = 
+    ((t' \<otimes> t) \<otimes> (snd x \<otimes> snd x')) \<otimes> (r \<otimes> r') \<ominus> (t' \<otimes> t) \<otimes> ((s \<otimes> s') \<otimes> (fst x \<otimes> fst x'))"
+      using f16 f17 f18 r_distr m_assoc r_minus a_minus_def
+      by (smt BNF_Def.Collect_case_prodD assms(1) assms(2) eq_class_of_rng_of_frac_def f14 f2 f3 m_comm mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def subset subset_iff)
+  then have f20:"(t' \<otimes> t) \<otimes> (snd x \<otimes> snd x') \<otimes> (r \<otimes> r') = (t' \<otimes> t) \<otimes> (snd x \<otimes> r \<otimes> snd x' \<otimes> r')"
+    using m_assoc m_comm f16 assms rel_def f2 f3
+    by (smt BNF_Def.Collect_case_prodD eq_class_of_rng_of_frac_def mem_Sigma_iff partial_object.select_convs(1) semiring_simprules(3) subset subset_iff)
+  then have "((t' \<otimes> t) \<otimes> (snd x \<otimes> snd x')) \<otimes> (r \<otimes> r') = t' \<otimes> ((t \<otimes> snd x \<otimes> r) \<otimes> snd x' \<otimes> r')"
+    using m_assoc assms f2 f3 rel_def f8 f12
+    by (smt BNF_Def.Collect_case_prodD eq_class_of_rng_of_frac_def mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) subset subset_iff)
+  then have f21:"((t' \<otimes> t) \<otimes> (snd x \<otimes> snd x')) \<otimes> (r \<otimes> r') = t' \<otimes> (t \<otimes> s \<otimes> fst x) \<otimes> snd x' \<otimes> r'"
+    using f11 m_assoc
+    by (smt BNF_Def.Collect_case_prodD assms(1) assms(2) eq_class_of_rng_of_frac_def f12 f2 f3 f8 mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) rel_def subset subset_iff)
+  moreover have "(t' \<otimes> t) \<otimes> ((s \<otimes> s') \<otimes> (fst x \<otimes> fst x')) = (t' \<otimes> s' \<otimes> fst x') \<otimes> t \<otimes> s \<otimes> fst x"
+    using assms f2 f3 f8 f12 m_assoc m_comm rel_def
+    by (smt BNF_Def.Collect_case_prodD eq_class_of_rng_of_frac_def mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1) subset subset_iff)
+  then have "(t' \<otimes> t) \<otimes> ((s \<otimes> s') \<otimes> (fst x \<otimes> fst x')) = (t' \<otimes> snd x' \<otimes> r') \<otimes> t \<otimes> s \<otimes> fst x"
+    using f15 m_assoc
+    by (smt BNF_Def.Collect_case_prodD assms(2) eq_class_of_rng_of_frac_def f12 f3 mem_Sigma_iff partial_object.select_convs(1) rel_def subset subset_iff)
+  then have f22:"(t' \<otimes> t) \<otimes> ((s \<otimes> s') \<otimes> (fst x \<otimes> fst x')) = t' \<otimes> ((t \<otimes> snd x \<otimes> r) \<otimes> snd x' \<otimes> r')"
+    using m_assoc m_comm assms
+    by (smt BNF_Def.Collect_case_prodD eq_class_of_rng_of_frac_def f12 f2 f21 f3 f8 mem_Sigma_iff partial_object.select_convs(1) rel_def semiring_simprules(3) subset subset_iff)
+  then have f23:"(t' \<otimes> t) \<otimes> ((snd x \<otimes> snd x') \<otimes> (r \<otimes> r') \<ominus> (s \<otimes> s') \<otimes> (fst x \<otimes> fst x')) = \<zero>"
+    using f19 f21 f22
+    by (metis \<open>t' \<otimes> t \<otimes> (snd x \<otimes> snd x') \<otimes> (r \<otimes> r') = t' \<otimes> (t \<otimes> snd x \<otimes> r \<otimes> snd x' \<otimes> r')\<close> a_minus_def f16 f18 r_neg semiring_simprules(3))
+  have f24:"(r \<otimes> r', s \<otimes> s') \<in> carrier rel"
+    using assms rel_def by auto
+  have "(fst x \<otimes> fst x', snd x \<otimes> snd x') \<in> carrier rel"
+    using f2 f3 member_class_to_carrier by auto
+  then have "(r \<otimes> r', s \<otimes> s') .=\<^bsub>rel\<^esub> (fst x \<otimes> fst x', snd x \<otimes> snd x')"
+    using f23 f24 rel_def \<open>t' \<otimes> t \<in> S\<close> by auto
+  then have "(r \<otimes> r' |\<^bsub>rel\<^esub> s \<otimes> s') = (fst x \<otimes> fst x' |\<^bsub>rel\<^esub> snd x \<otimes> snd x')"
+    using equiv_obj_rng_of_frac
 
 lemma member_class_to_assoc:
   assumes "x \<in> (r |\<^bsub>rel\<^esub> s)" and "y \<in> (t |\<^bsub>rel\<^esub> u)" and "z \<in> (v |\<^bsub>rel\<^esub> w)"
