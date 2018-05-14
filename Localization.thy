@@ -114,6 +114,11 @@ qed
 definition  eq_class_of_rng_of_frac:: "_ \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> _set" (infix "|\<index>" 10)
   where "r |\<^bsub>rel\<^esub> s \<equiv> {(r', s') \<in> carrier rel. (r, s) .=\<^bsub>rel\<^esub> (r', s')}"
 
+lemma class_of_to_rel:
+  shows "class_of\<^bsub>rel\<^esub> (r, s) = (r |\<^bsub>rel\<^esub> s)"
+  using eq_class_of_def[of rel] eq_class_of_rng_of_frac_def[of rel] 
+  by auto
+
 lemma (in eq_obj_rng_of_frac) zero_in_mult_submonoid:
   assumes "\<zero> \<in> S" and "(r, s) \<in> carrier rel" and "(r', s') \<in> carrier rel"
   shows "(r |\<^bsub>rel\<^esub> s) = (r' |\<^bsub>rel\<^esub> s')"
@@ -146,6 +151,35 @@ definition set_eq_class_of_rng_of_frac:: "_ \<Rightarrow> _set" ("set'_class'_of
   where "set_class_of\<^bsub>rel\<^esub> \<equiv> {(r |\<^bsub>rel\<^esub> s)| r s. (r, s) \<in> carrier rel}"
 
 term "set_class_of\<^bsub>rel\<^esub>"
+
+(* The lemma below should be moved to theory Congruence in HOL-Algebra *)
+lemma elem_eq_class:
+  assumes "equivalence S" and "x \<in> carrier S" and "y \<in> carrier S" and "x .=\<^bsub>S\<^esub> y"
+  shows "class_of\<^bsub>S\<^esub> x = class_of\<^bsub>S\<^esub> y"
+proof
+  show "class_of\<^bsub>S\<^esub> x \<subseteq> class_of\<^bsub>S\<^esub> y"
+  proof
+    fix z
+    assume "z \<in> class_of\<^bsub>S\<^esub> x"
+    then have "y .=\<^bsub>S\<^esub> z"
+      using assms eq_class_of_def[of S x] equivalence.sym[of S x y] equivalence.trans
+      by (metis (mono_tags, lifting) mem_Collect_eq)
+    thus "z \<in> class_of\<^bsub>S\<^esub> y"
+      using \<open>z \<in> class_of\<^bsub>S\<^esub> x\<close>
+      by (simp add: eq_class_of_def)
+  qed
+  show "class_of\<^bsub>S\<^esub> y \<subseteq> class_of\<^bsub>S\<^esub> x"
+  proof
+    fix z
+    assume "z \<in> class_of\<^bsub>S\<^esub> y"
+    then have "x .=\<^bsub>S\<^esub> z"
+      using assms eq_class_of_def equivalence.trans
+      by (metis (mono_tags, lifting) mem_Collect_eq)
+    thus "z \<in> class_of\<^bsub>S\<^esub> x"
+      using \<open>z \<in> class_of\<^bsub>S\<^esub> y\<close>
+      by (simp add: eq_class_of_def)
+  qed
+qed
 
 context eq_obj_rng_of_frac 
 begin
@@ -199,7 +233,7 @@ lemma non_empty_class:
   shows "(r |\<^bsub>rel\<^esub> s) \<noteq> {}"
   using assms eq_class_of_rng_of_frac_def equiv_obj_rng_of_frac equivalence.refl by fastforce
 
-lemma mult_rng_of_frac_fondamental_lemma:
+lemma mult_rng_of_frac_fundamental_lemma:
   assumes "(r, s) \<in> carrier rel" and "(r', s') \<in> carrier rel"
   shows "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (r \<otimes> r' |\<^bsub>rel\<^esub> s \<otimes> s')"
 proof-
@@ -287,12 +321,19 @@ proof-
     by (metis \<open>t' \<otimes> t \<otimes> (snd x \<otimes> snd x') \<otimes> (r \<otimes> r') = t' \<otimes> (t \<otimes> snd x \<otimes> r \<otimes> snd x' \<otimes> r')\<close> a_minus_def f16 f18 r_neg semiring_simprules(3))
   have f24:"(r \<otimes> r', s \<otimes> s') \<in> carrier rel"
     using assms rel_def by auto
-  have "(fst x \<otimes> fst x', snd x \<otimes> snd x') \<in> carrier rel"
+  have f25: "(fst x \<otimes> fst x', snd x \<otimes> snd x') \<in> carrier rel"
     using f2 f3 member_class_to_carrier by auto
   then have "(r \<otimes> r', s \<otimes> s') .=\<^bsub>rel\<^esub> (fst x \<otimes> fst x', snd x \<otimes> snd x')"
     using f23 f24 rel_def \<open>t' \<otimes> t \<in> S\<close> by auto
+  then have "class_of\<^bsub>rel\<^esub> (r \<otimes> r', s \<otimes> s') = class_of\<^bsub>rel\<^esub> (fst x \<otimes> fst x', snd x \<otimes> snd x')"
+    using f24 f25 equiv_obj_rng_of_frac elem_eq_class[of rel "(r \<otimes> r', s \<otimes> s')" "(fst x \<otimes> fst x', snd x \<otimes> snd x')"] 
+      eq_class_of_rng_of_frac_def by auto
   then have "(r \<otimes> r' |\<^bsub>rel\<^esub> s \<otimes> s') = (fst x \<otimes> fst x' |\<^bsub>rel\<^esub> snd x \<otimes> snd x')"
-    using equiv_obj_rng_of_frac
+    using class_of_to_rel[of rel] by auto
+  thus ?thesis
+    using \<open>(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (fst x \<otimes> fst x' |\<^bsub>rel\<^esub> snd x \<otimes> snd x')\<close> 
+trans sym by auto
+qed
 
 lemma member_class_to_assoc:
   assumes "x \<in> (r |\<^bsub>rel\<^esub> s)" and "y \<in> (t |\<^bsub>rel\<^esub> u)" and "z \<in> (v |\<^bsub>rel\<^esub> w)"
@@ -305,15 +346,20 @@ lemma assoc_mult_rng_of_frac:
   shows "((r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (t |\<^bsub>rel\<^esub> u)) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (v |\<^bsub>rel\<^esub> w) =
          (r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> ((t |\<^bsub>rel\<^esub> u) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (v |\<^bsub>rel\<^esub> w))"
 proof-
-  have f1:"\<exists>x. x \<in> (r |\<^bsub>rel\<^esub> s)"
-    using assms(1) eq_class_of_rng_of_frac_def equiv_obj_rng_of_frac equivalence.refl by fastforce
-  have f2:"\<exists>y. y \<in> (t |\<^bsub>rel\<^esub> u)"
-    using assms(2) eq_class_of_rng_of_frac_def equiv_obj_rng_of_frac equivalence.refl by fastforce
-  have f3:"\<exists>z. z \<in> (v |\<^bsub>rel\<^esub> w)"
-    using assms(3) eq_class_of_rng_of_frac_def equiv_obj_rng_of_frac equivalence.refl by fastforce
-  show ?thesis
-    using f1 f2 f3 assms member_class_to_assoc rec_monoid_rng_of_frac_def 
-mult_rng_of_frac_def[of "(r |\<^bsub>rel\<^esub> s)" "(t |\<^bsub>rel\<^esub> u)"] mult_rng_of_frac_def[of "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (t |\<^bsub>rel\<^esub> u)" "(v |\<^bsub>rel\<^esub> w)"]
+  have "((r \<otimes> t) \<otimes> v, (s \<otimes> u) \<otimes> w) = (r \<otimes> (t \<otimes> v), s \<otimes> (u \<otimes> w))"
+    using assms m_assoc
+    by (metis (no_types, lifting) mem_Sigma_iff partial_object.select_convs(1) rel_def set_rev_mp subset)
+  then have f1:"((r \<otimes> t) \<otimes> v |\<^bsub>rel\<^esub> (s \<otimes> u) \<otimes> w) = (r \<otimes> (t \<otimes> v) |\<^bsub>rel\<^esub> s \<otimes> (u \<otimes> w))"
+    by simp
+  have f2:"((r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (t |\<^bsub>rel\<^esub> u)) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (v |\<^bsub>rel\<^esub> w) =
+    ((r \<otimes> t) \<otimes> v |\<^bsub>rel\<^esub> (s \<otimes> u) \<otimes> w)"
+    using assms mult_rng_of_frac_fundamental_lemma rel_def by auto
+  have f3:"(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> ((t |\<^bsub>rel\<^esub> u) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (v |\<^bsub>rel\<^esub> w)) =
+    (r \<otimes> (t \<otimes> v) |\<^bsub>rel\<^esub> s \<otimes> (u \<otimes> w))"
+    using assms mult_rng_of_frac_fundamental_lemma rel_def by auto
+  thus ?thesis
+    using f1 f2 f3 by simp
+qed
 
 lemma monoid_rng_of_frac:
   shows "monoid (rec_monoid_rng_of_frac)"
@@ -327,3 +373,14 @@ proof
              z \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow>
              x \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> y \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> z =
              x \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (y \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> z)"
+    using assoc_mult_rng_of_frac
+    by (smt mem_Collect_eq partial_object.select_convs(1) rec_monoid_rng_of_frac_def set_eq_class_of_rng_of_frac_def)
+  show "\<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<in> carrier rec_monoid_rng_of_frac"
+    using rec_monoid_rng_of_frac_def rel_def set_eq_class_of_rng_of_frac_def by fastforce
+  show "\<And>x. x \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow> \<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> x = x"
+  proof-
+    fix x
+    assume "x \<in> carrier rec_monoid_rng_of_frac"
+    then have "\<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> x = x"
+      using rec_monoid_rng_of_frac_def mult_rng_of_frac_def[of "\<one>\<^bsub>rec_monoid_rng_of_frac\<^esub>" x] 
+mult_rng_of_frac_fundamental_lemma[of \<one> \<one> ] l_one 
