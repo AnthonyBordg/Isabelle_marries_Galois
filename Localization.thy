@@ -332,7 +332,7 @@ proof-
     using class_of_to_rel[of rel] by auto
   thus ?thesis
     using \<open>(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (fst x \<otimes> fst x' |\<^bsub>rel\<^esub> snd x \<otimes> snd x')\<close> 
-trans sym by auto
+      trans sym by auto
 qed
 
 lemma member_class_to_assoc:
@@ -361,6 +361,18 @@ proof-
     using f1 f2 f3 by simp
 qed
 
+lemma left_unit_mult_rng_of_frac:
+  assumes "(r, s) \<in> carrier rel"
+  shows "\<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) = (r |\<^bsub>rel\<^esub> s)"
+  using assms subset set_rev_mp rec_monoid_rng_of_frac_def mult_rng_of_frac_fundamental_lemma[of \<one> \<one> r s] 
+    l_one[of r] l_one[of s] rel_def by auto
+
+lemma right_unit_mult_rng_of_frac:
+  assumes "(r, s) \<in> carrier rel"
+  shows "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> = (r |\<^bsub>rel\<^esub> s)"
+  using assms subset set_rev_mp rec_monoid_rng_of_frac_def mult_rng_of_frac_fundamental_lemma[of r s \<one> \<one>]
+    r_one[of r] r_one[of s] rel_def by auto
+
 lemma monoid_rng_of_frac:
   shows "monoid (rec_monoid_rng_of_frac)"
 proof
@@ -378,9 +390,20 @@ proof
   show "\<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<in> carrier rec_monoid_rng_of_frac"
     using rec_monoid_rng_of_frac_def rel_def set_eq_class_of_rng_of_frac_def by fastforce
   show "\<And>x. x \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow> \<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> x = x"
-  proof-
-    fix x
-    assume "x \<in> carrier rec_monoid_rng_of_frac"
-    then have "\<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> x = x"
-      using rec_monoid_rng_of_frac_def mult_rng_of_frac_def[of "\<one>\<^bsub>rec_monoid_rng_of_frac\<^esub>" x] 
-mult_rng_of_frac_fundamental_lemma[of \<one> \<one> ] l_one 
+    using left_unit_mult_rng_of_frac
+    by (smt mem_Collect_eq partial_object.select_convs(1) rec_monoid_rng_of_frac_def set_eq_class_of_rng_of_frac_def)
+  show "\<And>x. x \<in> carrier rec_monoid_rng_of_frac \<Longrightarrow> x \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> \<one>\<^bsub>rec_monoid_rng_of_frac\<^esub> = x"
+    using right_unit_mult_rng_of_frac
+    by (smt mem_Collect_eq partial_object.select_convs(1) rec_monoid_rng_of_frac_def set_eq_class_of_rng_of_frac_def)
+qed
+
+definition add_rng_of_frac:: "[_set, _set] \<Rightarrow> _set"
+  where "add_rng_of_frac X Y \<equiv> 
+let x' = (SOME x. x \<in> X) in 
+let y' = (SOME y. y \<in> Y) in 
+(snd y' \<otimes> fst x' \<oplus> snd x' \<otimes> fst y') |\<^bsub>rel\<^esub> (snd x' \<otimes> snd y')"
+
+definition rec_rng_of_frac:: "_ ring"
+  where "rec_rng_of_frac \<equiv> 
+\<lparr>carrier = set_class_of\<^bsub>rel\<^esub>, mult = mult_rng_of_frac, one = (\<one>|\<^bsub>rel\<^esub> \<one>), zero = (\<zero> |\<^bsub>rel\<^esub> \<one>), add = add_rng_of_frac \<rparr>"
+
