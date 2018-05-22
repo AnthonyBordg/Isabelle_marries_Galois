@@ -187,6 +187,28 @@ lemma (in abelian_group) four_elem_comm:
   using assms a_assoc a_comm
   by (simp add: a_minus_def)
 
+lemma (in abelian_monoid) right_add_eq:
+  assumes "a = b"
+  shows "c \<oplus> a = c \<oplus> b"
+  using assms by simp
+
+lemma (in abelian_monoid) right_minus_eq:
+  assumes "a = b"
+  shows "c \<ominus> a = c \<ominus> b"
+  by (simp add: assms)
+
+lemma (in abelian_group) inv_add:
+  assumes "a \<in> carrier G" and "b \<in> carrier G"
+  shows "\<ominus> (a \<oplus> b) = \<ominus> a \<ominus> b"
+  using assms minus_add
+  by (simp add: a_minus_def)
+
+lemma (in abelian_group) right_inv_add:
+  assumes "a \<in> carrier G" and "b \<in> carrier G" and "c \<in> carrier G"
+  shows "c \<ominus> a \<ominus> b = c \<ominus> (a \<oplus> b)" 
+  using assms
+  by (simp add: a_minus_def add.m_assoc local.minus_add)
+
 context eq_obj_rng_of_frac 
 begin
 
@@ -583,14 +605,27 @@ proof-
       by (simp add: f14)
     have f45:"s \<otimes> s' \<otimes> (snd x' \<otimes> fst y') \<in> carrier R"
       by (metis (no_types, lifting) BNF_Def.Collect_case_prodD assms(1) assms(2) eq_class_of_rng_of_frac_def f1 f2 mem_Sigma_iff partial_object.select_convs(1) rel_def semiring_simprules(3) subset subset_iff)
+    then have "\<ominus> ((s \<otimes> s') \<otimes> (snd y' \<otimes> fst x') \<oplus> (s \<otimes> s') \<otimes> (snd x' \<otimes> fst y')) =
+      \<ominus> ((s \<otimes> s') \<otimes> (snd y' \<otimes> fst x')) \<ominus> ((s \<otimes> s') \<otimes> (snd x' \<otimes> fst y'))"
+      using f44 f45 inv_add  by auto
+    then have "\<ominus> ((s \<otimes> s') \<otimes> (snd y' \<otimes> fst x') \<oplus> (s \<otimes> s') \<otimes> (snd x' \<otimes> fst y')) =
+      \<ominus> (s \<otimes> s') \<otimes> (snd y' \<otimes> fst x') \<ominus> (s \<otimes> s') \<otimes> (snd x' \<otimes> fst y')"
+      using l_minus[of "s \<otimes> s'"]
+      by (simp add: a_minus_def f15 f16 f45)
+    then have "(snd x' \<otimes> snd y') \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') \<ominus> (s \<otimes> s') \<otimes> (snd y' \<otimes> fst x') \<ominus> (s \<otimes> s') \<otimes> (snd x' \<otimes> fst y') =
+      (snd x' \<otimes> snd y') \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') \<ominus> ((s \<otimes> s') \<otimes> (snd y' \<otimes> fst x') \<oplus> (s \<otimes> s') \<otimes> (snd x' \<otimes> fst y'))"
+      using right_inv_add \<open>snd x' \<otimes> snd y' \<in> carrier R\<close> assms(2) f13 f19 f34 f44 f45 rel_def by auto
+    then have "(snd x' \<otimes> snd y') \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') \<ominus> (s \<otimes> s') \<otimes> (snd y' \<otimes> fst x') \<ominus> (s \<otimes> s') \<otimes> (snd x' \<otimes> fst y') =
+      (snd x' \<otimes> snd y') \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') \<ominus> ((s \<otimes> s') \<otimes> (snd y' \<otimes> fst x' \<oplus> snd x' \<otimes> fst y'))"
+      using r_distr
+      by (simp add: f35)
     then have "(snd x' \<otimes> snd y') \<otimes> (s' \<otimes> r) \<ominus> (s \<otimes> s') \<otimes> (snd y' \<otimes> fst x') \<oplus> (snd x' \<otimes> snd y') \<otimes> (s \<otimes> r') \<ominus> (s \<otimes> s') \<otimes> (snd x' \<otimes> fst y') =
-(snd x' \<otimes> snd y') \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') \<ominus> ((s \<otimes> s') \<otimes> (snd y' \<otimes> fst x') \<oplus> (s \<otimes> s') \<otimes> (snd x' \<otimes> fst y'))"
-      using add.inv_mult[of "(s \<otimes> s') \<otimes> (snd y' \<otimes> fst x')" "(s \<otimes> s') \<otimes> (snd x' \<otimes> fst y')"] a_assoc 
-f43 f44 f45 a_minus_def
+      (snd x' \<otimes> snd y') \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') \<ominus> ((s \<otimes> s') \<otimes> (snd y' \<otimes> fst x' \<oplus> snd x' \<otimes> fst y'))"
+      using f43 by simp
     then have "(t' \<otimes> s' \<otimes> snd y') \<otimes> (t \<otimes> (snd x' \<otimes> r \<ominus> s \<otimes> fst x')) \<oplus> 
       (t \<otimes> s \<otimes> snd x') \<otimes> (t' \<otimes> (snd y' \<otimes> r' \<ominus> s' \<otimes> fst y')) = 
 (t \<otimes> t') \<otimes> ((snd x' \<otimes> snd y') \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') \<ominus> (s \<otimes> s') \<otimes> (snd y' \<otimes> fst x' \<oplus> snd x' \<otimes> fst y'))"
-      using r_distr f34 f35 m_comm a_minus_def
+      using f35 f36 
 
       
 
