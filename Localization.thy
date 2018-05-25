@@ -761,6 +761,49 @@ proof-
     by (metis (no_types, lifting) add.m_comm assms(1) assms(2) m_comm mem_Sigma_iff partial_object.select_convs(1) rel_def semiring_simprules(3) set_rev_mp subset)
 qed
 
+lemma class_of_zero_rng_of_frac:
+  assumes "s \<in> S"
+  shows "(\<zero> |\<^bsub>rel\<^esub> s) = \<zero>\<^bsub>rec_rng_of_frac\<^esub>"
+proof-
+  have f1:"(\<zero>, s) \<in> carrier rel"
+    using assms rel_def by simp
+  have "\<one> \<otimes> (\<one> \<otimes> \<zero> \<ominus> s \<otimes> \<zero>) = \<zero>"
+    using assms local.ring_axioms rev_subsetD ring.ring_simprules(14) subset by fastforce
+  then have "(\<zero>, s) .=\<^bsub>rel\<^esub> (\<zero>, \<one>)"
+    using rel_def submonoid.one_closed by auto
+  thus ?thesis
+    using elem_eq_class equiv_obj_rng_of_frac f1 rec_rng_of_frac_def
+    by (metis (no_types, lifting) class_of_to_rel mem_Sigma_iff one_closed partial_object.select_convs(1) rel_def ring_record_simps(11))
+qed
+
+lemma right_inv_add_rng_of_frac:
+  assumes "(r, s) \<in> carrier rel"
+  shows "(r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (\<ominus> r |\<^bsub>rel\<^esub> s) = \<zero>\<^bsub>rec_rng_of_frac\<^esub>"
+proof-
+  have "(\<ominus> r, s) \<in> carrier rel"
+    using assms rel_def by simp
+  then have "(r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (\<ominus> r |\<^bsub>rel\<^esub> s) = (s \<otimes> r \<oplus> s \<otimes> \<ominus> r |\<^bsub>rel\<^esub> s \<otimes> s)"
+    using assms add_rng_of_frac_fundamental_lemma by simp
+  then have "(r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (\<ominus> r |\<^bsub>rel\<^esub> s) = (\<zero> |\<^bsub>rel\<^esub> s \<otimes> s)"
+    using r_minus[of s r] assms rel_def subset set_rev_mp r_neg by auto
+  thus ?thesis
+    using class_of_zero_rng_of_frac assms rel_def submonoid.m_closed by simp
+qed
+
+lemma left_inv_add_rng_of_frac:
+  assumes "(r, s) \<in> carrier rel"
+  shows "(\<ominus> r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) = \<zero>\<^bsub>rec_rng_of_frac\<^esub>"
+proof-
+  have "(\<ominus> r, s) \<in> carrier rel"
+    using assms rel_def by simp
+  then have "(\<ominus> r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) = (s \<otimes> \<ominus> r \<oplus> s \<otimes> r |\<^bsub>rel\<^esub> s \<otimes> s)"
+    using assms add_rng_of_frac_fundamental_lemma by simp
+  then have "(\<ominus> r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) = (\<zero> |\<^bsub>rel\<^esub> s \<otimes> s)"
+    using r_minus[of s r] assms rel_def subset set_rev_mp l_neg by auto
+  thus ?thesis
+    using class_of_zero_rng_of_frac assms rel_def submonoid.m_closed by simp
+qed
+
 lemma abelian_group_rng_of_frac:
   shows "abelian_group (rec_rng_of_frac)"
 proof
@@ -804,7 +847,38 @@ proof
     by (smt mem_Collect_eq monoid.select_convs(1) partial_object.select_convs(1) rec_rng_of_frac_def set_eq_class_of_rng_of_frac_def)
   show "carrier \<lparr>carrier = carrier rec_rng_of_frac, mult = op \<oplus>\<^bsub>rec_rng_of_frac\<^esub>, one = \<zero>\<^bsub>rec_rng_of_frac\<^esub>\<rparr>
     \<subseteq> Units \<lparr>carrier = carrier rec_rng_of_frac, mult = op \<oplus>\<^bsub>rec_rng_of_frac\<^esub>, one = \<zero>\<^bsub>rec_rng_of_frac\<^esub>\<rparr>"
-    using Units_def
+  proof
+    show "\<And>x. x \<in> carrier \<lparr>carrier = carrier rec_rng_of_frac, mult = op \<oplus>\<^bsub>rec_rng_of_frac\<^esub>, one = \<zero>\<^bsub>rec_rng_of_frac\<^esub>\<rparr> \<Longrightarrow>
+         x \<in> Units \<lparr>carrier = carrier rec_rng_of_frac, mult = op \<oplus>\<^bsub>rec_rng_of_frac\<^esub>, one = \<zero>\<^bsub>rec_rng_of_frac\<^esub>\<rparr>"
+    proof-
+      fix x
+      assume a1:"x \<in> carrier \<lparr>carrier = carrier rec_rng_of_frac, mult = op \<oplus>\<^bsub>rec_rng_of_frac\<^esub>, one = \<zero>\<^bsub>rec_rng_of_frac\<^esub>\<rparr>"
+      then have "x \<in> set_class_of\<^bsub>rel\<^esub>"
+        using rec_rng_of_frac_def by simp
+      then obtain r and s where f1:"(r, s) \<in> carrier rel" and f2:"x = (r |\<^bsub>rel\<^esub> s)"
+        using set_eq_class_of_rng_of_frac_def
+        by (smt mem_Collect_eq)
+      then have f3:"(r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (\<ominus> r |\<^bsub>rel\<^esub> s) = \<zero>\<^bsub>rec_rng_of_frac\<^esub>"
+        using f1 right_inv_add_rng_of_frac[of r s] by simp
+      have f4:"(\<ominus> r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) = \<zero>\<^bsub>rec_rng_of_frac\<^esub>"
+        using f1 left_inv_add_rng_of_frac[of r s] by simp
+      then have "\<exists>y \<in> set_class_of\<^bsub>rel\<^esub>. y \<oplus>\<^bsub>rec_rng_of_frac\<^esub> x = \<zero>\<^bsub>rec_rng_of_frac\<^esub> \<and> x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> y = \<zero>\<^bsub>rec_rng_of_frac\<^esub>"
+        using f2 f3 f4
+        by (metis (no_types, lifting) abelian_group.a_inv_closed class_of_zero_rng_of_frac closed_add_rng_of_frac f1 is_abelian_group mem_Sigma_iff partial_object.select_convs(1) rel_def right_unit_add_rng_of_frac zero_closed) 
+      thus "x \<in> Units \<lparr>carrier = carrier rec_rng_of_frac, mult = op \<oplus>\<^bsub>rec_rng_of_frac\<^esub>, one = \<zero>\<^bsub>rec_rng_of_frac\<^esub>\<rparr>"
+        using Units_def rec_rng_of_frac_def a1
+        by (simp add: \<open>\<And>G. Units G = {y \<in> carrier G. \<exists>x\<in>carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> \<and> y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>}\<close>)
+    qed
+  qed
+qed
+
+lemma rng_rng_of_frac:
+  shows "ring (rec_rng_of_frac)"
+proof-
+  have "\<lbrakk>x \<in> carrier rec_rng_of_frac; y \<in> carrier rec_rng_of_frac; z \<in> carrier rec_rng_of_frac\<rbrakk> 
+    \<Longrightarrow> (x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> y) \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z = x \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z \<oplus>\<^bsub>rec_rng_of_frac\<^esub> y \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z"
+
+
 
 
 
