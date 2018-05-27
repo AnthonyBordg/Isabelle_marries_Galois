@@ -425,6 +425,28 @@ proof
     by (smt mem_Collect_eq partial_object.select_convs(1) rec_monoid_rng_of_frac_def set_eq_class_of_rng_of_frac_def)
 qed
 
+lemma comm_mult_rng_of_frac:
+  assumes "(r, s) \<in> carrier rel" and "(r', s') \<in> carrier rel"
+  shows "(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (r' |\<^bsub>rel\<^esub> s') \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s)"
+proof-
+  have f1:"(r |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (r \<otimes> r' |\<^bsub>rel\<^esub> s \<otimes> s')"
+    using assms mult_rng_of_frac_fundamental_lemma by simp
+  have f2:"(r' |\<^bsub>rel\<^esub> s') \<otimes>\<^bsub>rec_monoid_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) = (r' \<otimes> r |\<^bsub>rel\<^esub> s' \<otimes> s)"
+    using assms mult_rng_of_frac_fundamental_lemma by simp
+  have f3:"r \<otimes> r' = r' \<otimes> r"
+    using assms rel_def m_comm by simp
+  have f4:"s \<otimes> s' = s' \<otimes> s"
+    using assms rel_def subset set_rev_mp m_comm
+    by (metis (no_types, lifting) mem_Sigma_iff partial_object.select_convs(1))
+  thus ?thesis
+    using f1 f2 f3 f4 by simp
+qed
+
+lemma comm_monoid_rng_of_frac:
+  shows "comm_monoid (rec_monoid_rng_of_frac)"
+  using comm_monoid_def Group.comm_monoid_axioms_def monoid_rng_of_frac comm_mult_rng_of_frac
+  by (smt mem_Collect_eq partial_object.select_convs(1) rec_monoid_rng_of_frac_def set_eq_class_of_rng_of_frac_def)
+
 definition add_rng_of_frac:: "[_set, _set] \<Rightarrow> _set"
   where "add_rng_of_frac X Y \<equiv> 
 let x' = (SOME x. x \<in> X) in 
@@ -943,11 +965,103 @@ proof-
     using f1 f6 by simp
 qed
 
+lemma l_distr_rng_of_frac:
+  assumes "(r, s) \<in> carrier rel" and "(r', s') \<in> carrier rel" and "(r'', s'') \<in> carrier rel"
+  shows "(r'' |\<^bsub>rel\<^esub> s'') \<otimes>\<^bsub>rec_rng_of_frac\<^esub> ((r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s')) = 
+    (r'' |\<^bsub>rel\<^esub> s'') \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r'' |\<^bsub>rel\<^esub> s'') \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s')"
+proof-
+  have "(r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (s' \<otimes> r \<oplus> s \<otimes> r' |\<^bsub>rel\<^esub> s \<otimes> s')"
+    using assms(1) assms(2) add_rng_of_frac_fundamental_lemma by simp
+  then have f1:"(r'' |\<^bsub>rel\<^esub> s'') \<otimes>\<^bsub>rec_rng_of_frac\<^esub> ((r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s')) =
+    (r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') |\<^bsub>rel\<^esub> s'' \<otimes> (s \<otimes> s'))"
+    using assms mult_rng_of_frac_fundamental_lemma
+    by (simp add: closed_rel_add rec_monoid_rng_of_frac_def rec_rng_of_frac_def)
+  have f2:"(r'' |\<^bsub>rel\<^esub> s'') \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) = (r'' \<otimes> r |\<^bsub>rel\<^esub> s'' \<otimes> s)"
+    using assms(1) assms(3) mult_rng_of_frac_fundamental_lemma
+    by (simp add: rec_monoid_rng_of_frac_def rec_rng_of_frac_def)
+  have f3:"(r'' |\<^bsub>rel\<^esub> s'') \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s') = (r'' \<otimes> r' |\<^bsub>rel\<^esub> s'' \<otimes> s')"
+    using assms(2) assms(3) mult_rng_of_frac_fundamental_lemma
+    by (simp add: rec_monoid_rng_of_frac_def rec_rng_of_frac_def)
+  have f4:"(r'' \<otimes> r, s'' \<otimes> s) \<in> carrier rel"
+    using rel_def assms(1) assms(3) submonoid.m_closed by simp
+  have f5:"(r'' \<otimes> r', s'' \<otimes> s') \<in> carrier rel"
+    using rel_def assms(2) assms(3) submonoid.m_closed by simp
+  from f2 and f3 have f6:"(r'' |\<^bsub>rel\<^esub> s'') \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (r |\<^bsub>rel\<^esub> s) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (r'' |\<^bsub>rel\<^esub> s'') \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (r' |\<^bsub>rel\<^esub> s')
+    = ((s'' \<otimes> s') \<otimes> (r'' \<otimes> r) \<oplus> (s'' \<otimes> s) \<otimes> (r'' \<otimes> r') |\<^bsub>rel\<^esub> (s'' \<otimes> s) \<otimes> (s'' \<otimes> s'))"
+    using assms f4 f5 submonoid.m_closed add_rng_of_frac_fundamental_lemma by simp
+  have "(s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r')) = (s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> (s' \<otimes> r) \<oplus> r'' \<otimes> (s \<otimes> r'))"
+    using assms rel_def subset set_rev_mp r_distr
+    by (smt mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1))
+  then have f7:"(s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r')) = 
+    (s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> (s' \<otimes> r)) \<oplus> (s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> (s \<otimes> r'))"
+    using assms rel_def subset set_rev_mp submonoid.m_closed r_distr
+    by (smt mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1))
+  have f8:"(s'' \<otimes> s \<otimes> s') \<otimes> (s'' \<otimes> s' \<otimes> (r'' \<otimes> r) \<oplus> s'' \<otimes> s \<otimes> (r'' \<otimes> r')) = 
+    (s'' \<otimes> s \<otimes> s') \<otimes> (s'' \<otimes> s' \<otimes> (r'' \<otimes> r)) \<oplus> (s'' \<otimes> s \<otimes> s') \<otimes> (s'' \<otimes> s \<otimes> (r'' \<otimes> r'))"
+    using assms rel_def subset set_rev_mp submonoid.m_closed r_distr
+    by (smt mem_Sigma_iff partial_object.select_convs(1) semiring_simprules(3))
+  have "(s'' \<otimes> s \<otimes> (s'' \<otimes> s')) = (s'' \<otimes> (s \<otimes> s'') \<otimes> s')"
+    using assms rel_def subset set_rev_mp submonoid.m_closed m_assoc
+    by (smt mem_Sigma_iff partial_object.select_convs(1) semiring_simprules(3))
+  then have f9:"(s'' \<otimes> s \<otimes> (s'' \<otimes> s')) = (s'' \<otimes> s'' \<otimes> (s \<otimes> s'))"
+    using assms rel_def subset set_rev_mp submonoid.m_closed m_comm m_assoc
+    by (smt mem_Sigma_iff partial_object.select_convs(1) semiring_simprules(3))
+  then have f10:"(s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> s' \<otimes> r) = (s'' \<otimes> s \<otimes> s') \<otimes> (s'' \<otimes> s' \<otimes> (r'' \<otimes> r))"
+    using assms rel_def subset set_rev_mp submonoid.m_closed m_assoc m_comm
+    by (smt mem_Sigma_iff partial_object.select_convs(1) semiring_simprules(3))
+  have "(s'' \<otimes> s \<otimes> (r'' \<otimes> r')) = (s \<otimes> s'' \<otimes> (r'' \<otimes> r'))"
+    using assms rel_def subset set_rev_mp m_comm
+    by (metis (no_types, lifting) mem_Sigma_iff partial_object.select_convs(1))
+  then have "(s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> s \<otimes> r') = (s'' \<otimes> s \<otimes> s') \<otimes> (s'' \<otimes> s \<otimes> (r'' \<otimes> r'))"
+    using assms rel_def subset set_rev_mp submonoid.m_closed m_comm m_assoc f9
+    by (smt mem_Sigma_iff monoid.m_closed monoid_axioms partial_object.select_convs(1))
+  then have "((s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r')) = (s'' \<otimes> (s \<otimes> s')) \<otimes> (s'' \<otimes> s' \<otimes> (r'' \<otimes> r) \<oplus> s'' \<otimes> s \<otimes> (r'' \<otimes> r')))"
+    using  f7 f8 f10
+    by (smt assms(1) assms(2) assms(3) m_assoc mem_Sigma_iff partial_object.select_convs(1) rel_def set_rev_mp subset)
+  then have "((s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r')) \<ominus> (s'' \<otimes> (s \<otimes> s')) \<otimes> (s'' \<otimes> s' \<otimes> (r'' \<otimes> r) \<oplus> s'' \<otimes> s \<otimes> (r'' \<otimes> r'))) = \<zero>"
+    by (smt a_minus_def assms(1) assms(2) assms(3) closed_rel_add mem_Sigma_iff partial_object.select_convs(1) r_neg rel_def semiring_simprules(3) set_rev_mp subset)
+  then have f11:"\<one> \<otimes> (((s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<otimes> (r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r')) \<ominus> (s'' \<otimes> (s \<otimes> s')) \<otimes> (s'' \<otimes> s' \<otimes> (r'' \<otimes> r) \<oplus> s'' \<otimes> s \<otimes> (r'' \<otimes> r')))) = \<zero>"
+    by simp
+  have f12:"(r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r'), s'' \<otimes> (s \<otimes> s')) \<in> carrier rel"
+    using assms closed_rel_add rel_def by auto
+  have f13:"(s'' \<otimes> s' \<otimes> (r'' \<otimes> r) \<oplus> s'' \<otimes> s \<otimes> (r'' \<otimes> r'), s'' \<otimes> s \<otimes> (s'' \<otimes> s')) \<in> carrier rel"
+    by (simp add: closed_rel_add f4 f5)
+  have "\<one> \<in> S"
+    using submonoid.one_closed by simp
+  then have "(r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r'), s'' \<otimes> (s \<otimes> s')) .=\<^bsub>rel\<^esub> (s'' \<otimes> s' \<otimes> (r'' \<otimes> r) \<oplus> s'' \<otimes> s \<otimes> (r'' \<otimes> r'), s'' \<otimes> s \<otimes> (s'' \<otimes> s'))"
+    using rel_def f11 f13 f12 by auto
+  then have "(r'' \<otimes> (s' \<otimes> r \<oplus> s \<otimes> r') |\<^bsub>rel\<^esub> s'' \<otimes> (s \<otimes> s')) = (s'' \<otimes> s' \<otimes> (r'' \<otimes> r) \<oplus> s'' \<otimes> s \<otimes> (r'' \<otimes> r') |\<^bsub>rel\<^esub> s'' \<otimes> s \<otimes> (s'' \<otimes> s'))"
+    using elem_eq_class
+    by (metis class_of_to_rel equiv_obj_rng_of_frac f12 f13)
+  thus ?thesis
+    using f1 f6 by simp
+qed
+
 lemma rng_rng_of_frac:
   shows "ring (rec_rng_of_frac)"
 proof-
-  have "\<lbrakk>x \<in> carrier rec_rng_of_frac; y \<in> carrier rec_rng_of_frac; z \<in> carrier rec_rng_of_frac\<rbrakk> 
-    \<Longrightarrow> (x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> y) \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z = x \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z \<oplus>\<^bsub>rec_rng_of_frac\<^esub> y \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z"
+  have f1:"\<forall>x y z. x \<in> carrier rec_rng_of_frac \<longrightarrow> y \<in> carrier rec_rng_of_frac \<longrightarrow> z \<in> carrier rec_rng_of_frac 
+    \<longrightarrow> (x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> y) \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z = x \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z \<oplus>\<^bsub>rec_rng_of_frac\<^esub> y \<otimes>\<^bsub>rec_rng_of_frac\<^esub> z"
+    using r_distr_rng_of_frac rec_rng_of_frac_def
+    by (smt mem_Collect_eq partial_object.select_convs(1) set_eq_class_of_rng_of_frac_def)
+  have f2:"\<forall>x y z. x \<in> carrier rec_rng_of_frac \<longrightarrow> y \<in> carrier rec_rng_of_frac \<longrightarrow> z \<in> carrier rec_rng_of_frac 
+    \<longrightarrow> z \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> y) = z \<otimes>\<^bsub>rec_rng_of_frac\<^esub> x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> z \<otimes>\<^bsub>rec_rng_of_frac\<^esub> y"
+    using l_distr_rng_of_frac rec_rng_of_frac_def
+    by (smt mem_Collect_eq partial_object.select_convs(1) set_eq_class_of_rng_of_frac_def)
+  then have "ring_axioms (rec_rng_of_frac)"
+    using ring_axioms_def f1 f2 by auto
+  thus ?thesis  
+    using ring_def[of rec_rng_of_frac] abelian_group_rng_of_frac monoid_rng_of_frac rec_rng_of_frac_def 
+abelian_group_axioms_def rec_monoid_rng_of_frac_def eq_class_of_rng_of_frac_def
+    by (simp add: Group.monoid_def)
+qed
+
+lemma crng_rng_of_frac:
+  shows "cring (rec_rng_of_frac)"
+  using cring_def[of rec_rng_of_frac] rng_rng_of_frac comm_monoid_rng_of_frac rec_rng_of_frac_def 
+rec_monoid_rng_of_frac_def eq_class_of_rng_of_frac_def
+  by (metis (no_types, lifting) comm_monoid.m_comm monoid.monoid_comm_monoidI monoid.select_convs(1) partial_object.select_convs(1) ring.is_monoid)
+
 
 
 
