@@ -1063,7 +1063,7 @@ rec_monoid_rng_of_frac_def eq_class_of_rng_of_frac_def
   by (metis (no_types, lifting) comm_monoid.m_comm monoid.monoid_comm_monoidI monoid.select_convs(1) partial_object.select_convs(1) ring.is_monoid)
 
 
-
+end
 
 
 
