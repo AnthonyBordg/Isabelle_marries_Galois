@@ -1062,6 +1062,29 @@ lemma crng_rng_of_frac:
 rec_monoid_rng_of_frac_def eq_class_of_rng_of_frac_def
   by (metis (no_types, lifting) comm_monoid.m_comm monoid.monoid_comm_monoidI monoid.select_convs(1) partial_object.select_convs(1) ring.is_monoid)
 
+lemma simp_in_frac:
+  assumes "(r, s) \<in> carrier rel" and "s' \<in> S"
+  shows "(r |\<^bsub>rel\<^esub> s) = (s' \<otimes> r |\<^bsub>rel\<^esub> s' \<otimes> s)"
+proof-
+  have f1:"(s' \<otimes> r, s' \<otimes> s) \<in> carrier rel"
+    using assms rel_def submonoid.m_closed subset set_rev_mp by auto
+  have "(s' \<otimes> s) \<otimes> r \<ominus> s \<otimes> (s' \<otimes> r) = (s' \<otimes> s) \<otimes> r \<ominus> (s \<otimes> s') \<otimes> r"
+    using assms subset set_rev_mp m_assoc[of s s' r] rel_def
+    by (metis (no_types, lifting) mem_Sigma_iff partial_object.select_convs(1))
+  then have "(s' \<otimes> s) \<otimes> r \<ominus> s \<otimes> (s' \<otimes> r) = (s' \<otimes> s) \<otimes> r \<ominus> (s' \<otimes> s) \<otimes> r"
+    using m_comm[of s s'] assms subset set_rev_mp rel_def
+    by (metis (no_types, lifting) mem_Sigma_iff partial_object.select_convs(1))
+  then have "(s' \<otimes> s) \<otimes> r \<ominus> s \<otimes> (s' \<otimes> r) = \<zero>"
+    by (metis (no_types, lifting) a_minus_def assms mem_Sigma_iff partial_object.select_convs(1) r_neg rel_def semiring_simprules(3) set_rev_mp subset)
+  then have "\<one> \<otimes> ((s' \<otimes> s) \<otimes> r \<ominus> s \<otimes> (s' \<otimes> r)) = \<zero>"
+    by simp
+  then have "(r, s) .=\<^bsub>rel\<^esub> (s' \<otimes> r, s' \<otimes> s)"
+    using assms(1) f1 rel_def one_closed by auto
+  thus ?thesis
+    using elem_eq_class
+    by (metis assms(1) class_of_to_rel equiv_obj_rng_of_frac f1)
+qed
+
 
 end
 
