@@ -1085,8 +1085,11 @@ proof-
     by (metis assms(1) class_of_to_rel equiv_obj_rng_of_frac f1)
 qed
 
+definition rng_to_rng_of_frac :: "'a \<Rightarrow> ('a \<times> 'a) set" where
+"rng_to_rng_of_frac r \<equiv> (r |\<^bsub>rel\<^esub> \<one>)"
 
-end
+lemma rng_to_rng_of_frac_is_ring_hom :
+  shows "rng_to_rng_of_frac \<in> ring_hom R rec_rng_of_frac"
 
 
 
