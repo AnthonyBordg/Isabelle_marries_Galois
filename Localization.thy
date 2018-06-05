@@ -1090,6 +1090,54 @@ definition rng_to_rng_of_frac :: "'a \<Rightarrow> ('a \<times> 'a) set" where
 
 lemma rng_to_rng_of_frac_is_ring_hom :
   shows "rng_to_rng_of_frac \<in> ring_hom R rec_rng_of_frac"
+proof-
+  have f1:"rng_to_rng_of_frac \<in> carrier R \<rightarrow> carrier rec_rng_of_frac"
+    using rng_to_rng_of_frac_def rec_rng_of_frac_def set_eq_class_of_rng_of_frac_def rel_def 
+    by fastforce
+  have f2:"\<forall>x y. x \<in> carrier R \<and> y \<in> carrier R 
+    \<longrightarrow> rng_to_rng_of_frac (x \<otimes>\<^bsub>R\<^esub> y) = rng_to_rng_of_frac x \<otimes>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y"
+  proof(rule allI, rule allI, rule impI)
+    fix x y
+    assume "x \<in> carrier R \<and> y \<in> carrier R"
+    have f1:"rng_to_rng_of_frac (x \<otimes>\<^bsub>R\<^esub> y) = (x \<otimes> y |\<^bsub>rel\<^esub> \<one>)"
+      using rng_to_rng_of_frac_def by simp
+    have "rng_to_rng_of_frac x \<otimes>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y = (x |\<^bsub>rel\<^esub> \<one>) \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (y |\<^bsub>rel\<^esub> \<one>)"
+      using rng_to_rng_of_frac_def by simp
+    then have "rng_to_rng_of_frac x \<otimes>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y = (x \<otimes> y |\<^bsub>rel\<^esub> \<one>)"
+      using mult_rng_of_frac_fundamental_lemma
+      by (simp add: \<open>x \<in> carrier R \<and> y \<in> carrier R\<close> rec_monoid_rng_of_frac_def rec_rng_of_frac_def rel_def)
+    thus "rng_to_rng_of_frac (x \<otimes>\<^bsub>R\<^esub> y) = rng_to_rng_of_frac x \<otimes>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y"
+      using f1 by auto
+  qed
+  have f3:"\<forall>x y. x \<in> carrier R \<and> y \<in> carrier R
+    \<longrightarrow> rng_to_rng_of_frac (x \<oplus>\<^bsub>R\<^esub> y) = rng_to_rng_of_frac x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y"
+  proof(rule allI, rule allI, rule impI)
+    fix x y
+    assume a:"x \<in> carrier R \<and> y \<in> carrier R"
+    have f1:"rng_to_rng_of_frac (x \<oplus>\<^bsub>R\<^esub> y) = (x \<oplus> y |\<^bsub>rel\<^esub> \<one>)"
+      using rng_to_rng_of_frac_def by simp
+    have "rng_to_rng_of_frac x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y = (x |\<^bsub>rel\<^esub> \<one>) \<oplus>\<^bsub>rec_rng_of_frac\<^esub> (y |\<^bsub>rel\<^esub> \<one>)"
+      using rng_to_rng_of_frac_def by simp
+    then have "rng_to_rng_of_frac x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y = (\<one> \<otimes> x \<oplus> \<one> \<otimes> y |\<^bsub>rel\<^esub> \<one> \<otimes> \<one>)"
+      using mult_rng_of_frac_fundamental_lemma a 
+        eq_obj_rng_of_frac.add_rng_of_frac_fundamental_lemma eq_obj_rng_of_frac.rng_to_rng_of_frac_def 
+        eq_obj_rng_of_frac_axioms f1 
+      by fastforce
+    then have "rng_to_rng_of_frac x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y = (x \<oplus> y |\<^bsub>rel\<^esub> \<one>)"
+      using l_one a by simp     
+    thus "rng_to_rng_of_frac (x \<oplus>\<^bsub>R\<^esub> y) = rng_to_rng_of_frac x \<oplus>\<^bsub>rec_rng_of_frac\<^esub> rng_to_rng_of_frac y"
+      using f1 by auto
+  qed
+  have "rng_to_rng_of_frac \<one> = (\<one> |\<^bsub>rel\<^esub> \<one>)"
+    using rng_to_rng_of_frac_def by simp
+  then have f4:"rng_to_rng_of_frac \<one>\<^bsub>R\<^esub> = \<one>\<^bsub>rec_rng_of_frac\<^esub>"
+    using rec_rng_of_frac_def by simp
+  thus ?thesis
+    using ring_hom_def[of R rec_rng_of_frac] f1 f2 f3 f4 by simp
+qed
+
+
+      
 
 
 
