@@ -1,5 +1,5 @@
 theory Localization
-  imports Main "HOL-Algebra.Group" "HOL-Algebra.Ring"
+  imports Main "HOL-Algebra.Group" "HOL-Algebra.Ring" "HOL-Algebra.Coset"
 begin
 
 locale submonoid = monoid M for M (structure) +
@@ -1135,6 +1135,51 @@ proof-
   thus ?thesis
     using ring_hom_def[of R rec_rng_of_frac] f1 f2 f3 f4 by simp
 qed
+
+lemma Im_rng_to_rng_of_frac_unit:
+  assumes "x \<in> rng_to_rng_of_frac ` S"
+  shows "x \<in> Units rec_rng_of_frac"
+proof-
+  obtain s where a1:"s \<in> S" and a2:"x = (s |\<^bsub>rel\<^esub> \<one>)"
+    using assms rng_to_rng_of_frac_def rel_def
+    by auto
+  then have "(s |\<^bsub>rel\<^esub> \<one>) \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (\<one> |\<^bsub>rel\<^esub> s) = (s \<otimes> \<one> |\<^bsub>rel\<^esub> s \<otimes> \<one>)"
+    using mult_rng_of_frac_fundamental_lemma rec_monoid_rng_of_frac_def rec_rng_of_frac_def rel_def subset 
+    by auto
+  then have f1:"(s |\<^bsub>rel\<^esub> \<one>) \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (\<one> |\<^bsub>rel\<^esub> s) = (\<one> |\<^bsub>rel\<^esub> \<one>)"
+    using simp_in_frac a1 rel_def 
+    by auto
+  have "(\<one> |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (s |\<^bsub>rel\<^esub> \<one>) = (s \<otimes> \<one> |\<^bsub>rel\<^esub> s \<otimes> \<one>)"
+    using mult_rng_of_frac_fundamental_lemma rec_monoid_rng_of_frac_def rec_rng_of_frac_def rel_def 
+      subset a1 
+    by auto
+  then have f2:"(\<one> |\<^bsub>rel\<^esub> s) \<otimes>\<^bsub>rec_rng_of_frac\<^esub> (s |\<^bsub>rel\<^esub> \<one>) = (\<one> |\<^bsub>rel\<^esub> \<one>)"
+    using simp_in_frac  a1 rel_def
+    by auto
+  then have f3:"\<exists>y\<in>carrier rec_rng_of_frac. y \<otimes>\<^bsub>rec_rng_of_frac\<^esub> x = \<one>\<^bsub>rec_rng_of_frac\<^esub> \<and> 
+    x \<otimes>\<^bsub>rec_rng_of_frac\<^esub> y = \<one>\<^bsub>rec_rng_of_frac\<^esub>"
+    using rec_rng_of_frac_def f1 f2 a2 rel_def a1
+    by (metis (no_types, lifting) class_of_zero_rng_of_frac closed_add_rng_of_frac l_unit_add_rng_of_frac 
+        mem_Sigma_iff monoid.select_convs(2) partial_object.select_convs(1) semiring_simprules(4) zero_closed)
+  have "x \<in> carrier rec_rng_of_frac"
+    using a2 a1 subset set_rev_mp rec_rng_of_frac_def
+    by (metis (no_types, hide_lams) ring_hom_closed rng_to_rng_of_frac_def rng_to_rng_of_frac_is_ring_hom)
+  thus ?thesis
+    using Units_def[of rec_rng_of_frac] f3 by auto
+qed
+
+definition rec_group_rng_of_frac:: "_ monoid"
+  where "rec_group_rng_of_frac \<equiv> 
+\<lparr>carrier = set_class_of\<^bsub>rel\<^esub>, mult = add_rng_of_frac, one = (\<zero> |\<^bsub>rel\<^esub> \<one>)\<rparr>"
+
+lemma rng_to_rng_of_frac_is_inj_for_domain:
+  assumes "\<zero> \<notin> S" and "domain R"
+  shows "kernel R rec_group_rng_of_frac rng_to_rng_of_frac = {\<zero>}"
+proof-
+  fix r
+  assume "r \<in> carrier R" and "(r |\<^bsub>rel\<^esub> \<one>) = \<zero>"
+
+
 
 
       
