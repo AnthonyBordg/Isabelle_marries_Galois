@@ -1,6 +1,14 @@
 theory Localization
-  imports Main "HOL-Algebra.Group" "HOL-Algebra.Ring" "HOL-Algebra.Coset"
+  imports Main "HOL-Algebra.Group" "HOL-Algebra.Ring" "HOL-Algebra.AbelCoset"
 begin
+
+(*
+Contents: 
+- We define the localization of a commutative ring R with respect to a multiplicative subset, 
+i.e. with respect to a submonoid of R (seen as a multiplicative monoid), cf. [rec_rng_of_frac]. 
+- We prove that this localization is a commutative ring (cf. [crng_rng_of_frac]) equipped with a 
+homomorphism of rings from R (cf. [rng_to_rng_of_frac_is_ring_hom]).
+*)
 
 locale submonoid = monoid M for M (structure) +
   fixes S
@@ -1168,16 +1176,60 @@ proof-
     using Units_def[of rec_rng_of_frac] f3 by auto
 qed
 
-definition rec_group_rng_of_frac:: "_ monoid"
-  where "rec_group_rng_of_frac \<equiv> 
-\<lparr>carrier = set_class_of\<^bsub>rel\<^esub>, mult = add_rng_of_frac, one = (\<zero> |\<^bsub>rel\<^esub> \<one>)\<rparr>"
-
-lemma rng_to_rng_of_frac_is_inj_for_domain:
-  assumes "\<zero> \<notin> S" and "domain R"
-  shows "kernel R rec_group_rng_of_frac rng_to_rng_of_frac = {\<zero>}"
+lemma eq_class_to_rel:
+  assumes "(r, s) \<in> carrier R \<times> S" and "(r', s') \<in> carrier R \<times> S" and "(r |\<^bsub>rel\<^esub> s) = (r' |\<^bsub>rel\<^esub> s')"
+  shows "(r, s) .=\<^bsub>rel\<^esub> (r', s')"
 proof-
-  fix r
-  assume "r \<in> carrier R" and "(r |\<^bsub>rel\<^esub> \<one>) = \<zero>"
+  have "(r, s) \<in> (r |\<^bsub>rel\<^esub> s)"
+    using assms(1) equiv_obj_rng_of_frac equivalence_def
+    by (metis (no_types, lifting) CollectI case_prodI eq_class_of_rng_of_frac_def partial_object.select_convs(1) rel_def)
+  then have "(r, s) \<in> (r' |\<^bsub>rel\<^esub> s')"
+    using assms(3) by simp
+  then have "(r', s') .=\<^bsub>rel\<^esub> (r, s)"
+    by (simp add: eq_class_of_rng_of_frac_def)
+  thus ?thesis
+    using equiv_obj_rng_of_frac equivalence_def
+    by (metis (no_types, lifting) assms(1) assms(2) partial_object.select_convs(1) rel_def)
+qed
+
+lemma rng_to_rng_of_frac_without_zero_div_is_inj:
+  assumes "\<zero> \<notin> S" and "\<forall>a \<in> carrier R.\<forall>b \<in> carrier R. a \<otimes> b = \<zero> \<longrightarrow> a = \<zero> \<or> b = \<zero>"
+  shows "a_kernel R rec_rng_of_frac rng_to_rng_of_frac = {\<zero>}"
+proof-
+  have "{r\<in> carrier R. rng_to_rng_of_frac r = \<zero>\<^bsub>rec_rng_of_frac\<^esub>} \<subseteq> {\<zero>}"
+  proof(rule subsetI)
+    fix x
+    assume a1:"x \<in> {r \<in> carrier R. rng_to_rng_of_frac r = \<zero>\<^bsub>rec_rng_of_frac\<^esub>}"
+    then have "(x, \<one>) .=\<^bsub>rel\<^esub> (\<zero>, \<one>)"
+      using rng_to_rng_of_frac_def rec_rng_of_frac_def eq_class_to_rel by simp
+    then obtain t where f1:"t \<in> S" and f2:"t \<otimes> (\<one> \<otimes> x \<ominus> \<one> \<otimes> \<zero>) = \<zero>"
+      using rel_def by auto
+    have f3:"x\<in> carrier R"
+      using a1 by simp
+    then have f4:"t \<otimes> x = \<zero>"
+      using l_one r_zero f2 
+      by (simp add: a_minus_def)
+    have "t \<noteq> \<zero>"
+      using f1 assms(1) by auto
+    then have "x = \<zero>"
+      using assms(2) f1 f3 f4 subset set_rev_mp 
+      by auto
+    thus "x \<in> {\<zero>}"
+      by simp
+  qed
+  have "{\<zero>} \<subseteq> {r\<in> carrier R. rng_to_rng_of_frac r = \<zero>\<^bsub>rec_rng_of_frac\<^esub>}"
+    using subsetI rng_to_rng_of_frac_def rec_rng_of_frac_def by simp
+  then have "{r\<in> carrier R. rng_to_rng_of_frac r = \<zero>\<^bsub>rec_rng_of_frac\<^esub>} = {\<zero>}"
+    using \<open>{r\<in> carrier R. rng_to_rng_of_frac r = \<zero>\<^bsub>rec_rng_of_frac\<^esub>} \<subseteq> {\<zero>}\<close> by auto
+  thus ?thesis
+    by (simp add: a_kernel_def kernel_def)
+qed
+
+end
+
+(*
+Bilio: Serge Lang, Algebra, II, \<section>4.
+*) 
 
 
 
