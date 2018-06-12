@@ -3,6 +3,8 @@ theory Localization
 begin
 
 (*
+Author: Anthony Bordg, University of Cambridge, apdb3@cam.ac.uk .
+
 Contents: 
 - We define the localization of a commutative ring R with respect to a multiplicative subset, 
 i.e. with respect to a submonoid of R (seen as a multiplicative monoid), cf. [rec_rng_of_frac]. 
