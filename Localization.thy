@@ -1227,11 +1227,11 @@ proof-
     by (simp add: a_kernel_def kernel_def)
 qed
 
-end
-
 (*
 Bilio: Serge Lang, Algebra, II, \<section>4.
-*) 
+*)
+
+end
 
 
 
