@@ -2,15 +2,19 @@ theory Localization
   imports Main "HOL-Algebra.Group" "HOL-Algebra.Ring" "HOL-Algebra.AbelCoset"
 begin
 
-(*
-Author: Anthony Bordg, University of Cambridge, apdb3@cam.ac.uk .
+(* Author: Anthony Bordg, University of Cambridge, apdb3@cam.ac.uk .*)
 
+text \<open>
 Contents: 
-- We define the localization of a commutative ring R with respect to a multiplicative subset, 
+\<^item> We define the localization of a commutative ring R with respect to a multiplicative subset, 
 i.e. with respect to a submonoid of R (seen as a multiplicative monoid), cf. [rec_rng_of_frac]. 
-- We prove that this localization is a commutative ring (cf. [crng_rng_of_frac]) equipped with a 
+\<^item> We prove that this localization is a commutative ring (cf. [crng_rng_of_frac]) equipped with a 
 homomorphism of rings from R (cf. [rng_to_rng_of_frac_is_ring_hom]).
-*)
+\<close>
+
+section \<open>The Localization of a Commutative Ring\<close>
+
+subsection \<open>Localization\<close>
 
 locale submonoid = monoid M for M (structure) +
   fixes S
@@ -194,8 +198,6 @@ qed
 
 definition set_eq_class_of_rng_of_frac:: "_ \<Rightarrow> _set" ("set'_class'_of\<index>")
   where "set_class_of\<^bsub>rel\<^esub> \<equiv> {(r |\<^bsub>rel\<^esub> s)| r s. (r, s) \<in> carrier rel}"
-
-term "set_class_of\<^bsub>rel\<^esub>"
 
 (* The lemma below should be moved to theory Congruence in HOL-Algebra *)
 lemma elem_eq_class:
@@ -1308,6 +1310,8 @@ proof-
     by (metis assms(1) class_of_to_rel equiv_obj_rng_of_frac f1)
 qed
 
+subsection \<open>The Natural Homomorphism from a Ring to Its Localization\<close>
+
 definition rng_to_rng_of_frac :: "'a \<Rightarrow> ('a \<times> 'a) set" where
 "rng_to_rng_of_frac r \<equiv> (r |\<^bsub>rel\<^esub> \<one>)"
 
@@ -1461,10 +1465,6 @@ qed
 
 end
 
-(*
-Bilio: 
-- Serge Lang, Algebra, II, \<section>4.
-*)
 
 end
 
